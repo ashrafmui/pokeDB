@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 interface GneerationButtonsProps {
-  activeGeneration: number;
+  activeGeneration: number | null;
 }
 
 export default function GenerationButtons({ activeGeneration }: GneerationButtonsProps) {
