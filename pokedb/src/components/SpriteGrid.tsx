@@ -46,8 +46,7 @@ export default function SpriteGrid({ generation }: SpriteGridProps) {
             return {
               name: pokeData.name,
               sprite:
-                pokeData.sprites.versions["generation-vii"]["ultra-sun-ultra-moon"]
-                  .front_default, // Get Gen 7 sprite
+                pokeData.sprites.versions["generation-vii"]["ultra-sun-ultra-moon"].front_default, // Get Gen 7 sprite
             };
           })
         );

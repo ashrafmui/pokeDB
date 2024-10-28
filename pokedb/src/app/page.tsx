@@ -1,14 +1,15 @@
 import SearchBar from "@/components/SearchBar";
 import Image from "next/image";
 import Link from "next/link";
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button } from "@nextui-org/react";
 import GenerationButtons from "@/components/GenerationButtons";
 
+
 export default function Home() {
+
+  // Extract the generation number from the URL
+  
   return (
     <div className="min-h-screen flex flex-col">
-      
-
       <div className="flex flex-1 flex-col items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-background">
         <main className="flex flex-col items-center gap-8">
           <div className="flex items-center justify-center">
@@ -26,13 +27,15 @@ export default function Home() {
           <div className="flex items-center justify-center">
             <SearchBar />
           </div>
-           <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center">
+            <GenerationButtons activeGeneration={null}/>
+          </div>
+          <div className="flex items-center justify-center">
             <Link href="/spotlight">
               View Pokemon
             </Link>
-            <GenerationButtons />
-
           </div>
+          
         </main>
 
         {/* <footer className="flex gap-6 flex-wrap items-center justify-center mt-16">

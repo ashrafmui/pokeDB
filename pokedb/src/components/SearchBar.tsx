@@ -18,7 +18,7 @@ export default function SearchBar() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search Pokémon..."
-        className="font pocket-monk w-full p-2 pr-0 border border-gray-300 shadow-sm rounded-tl-full rounded-bl-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full p-2 pr-0 border border-gray-300 shadow-sm rounded-tl-full rounded-bl-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
       <button
         type="submit"

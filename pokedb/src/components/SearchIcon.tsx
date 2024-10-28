@@ -3,7 +3,6 @@ interface SearchIconProps {
   strokeWidth?: number;
   width?: number;
   height?: number;
-  [key: string]: any; // Allows other SVG props
 }
 
 export const SearchIcon = ({
