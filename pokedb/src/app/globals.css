@@ -155,12 +155,12 @@ body {
   border: none;
   outline: none;
   font-size: 6rem;
-  color: #fdce00;
+  color: #ffffff;
   text-shadow:
-    -5px -5px 0 rgba(37, 77, 252, 255),
-    5px -5px 0 rgba(37, 77, 252, 255),
-    -5px 10px 0 black,
-    5px 5px 0 rgba(37, 77, 252, 255);
+    -5px -10px 0 rgba(232, 83, 81),
+    /* 5px -5px 0 rgba(37, 77, 252, 255), */
+    -5px 10px 0 black
+    /* 5px 5px 0 rgba(37, 77, 252, 255); */
 }
 
 @layer base {
