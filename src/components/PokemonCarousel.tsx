@@ -18,6 +18,12 @@ interface PokemonData {
   types: string[];
 }
 
+interface PokemonTypeInfo {
+  type: {
+    name: string;
+  };
+}
+
 const pokemonIds = [1, 2, 3]; // Bulbasaur, Ivysaur, and Venusaur
 
 export default function PokemonCarousel() {
@@ -34,7 +40,7 @@ export default function PokemonCarousel() {
         pokemonIds.map(async (id) => {
           const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
           const pokemon = await response.json();
-          const types = pokemon.types.map((typeInfo: any) => typeInfo.type.name);
+          const types = pokemon.types.map((typeInfo: PokemonTypeInfo) => typeInfo.type.name);
           return {
             name: pokemon.name,
             spriteUrl: pokemon.sprites.other["official-artwork"].front_default,

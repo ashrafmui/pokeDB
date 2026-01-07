@@ -1,6 +1,6 @@
 //import EmblaCarousel from "@/components/EmblaCarousel";
 // import {SearchIcon} from "@/components/SearchIcon.tsx";
-import Image from "next/image";
+// import Image from "next/image";
 import PokemonCarousel from "@/components/PokemonCarousel";
 import SimpleRadarChart from "@/components/SimpleRadarChart";
 // import PokemonList from "@/components/PokemonList";
