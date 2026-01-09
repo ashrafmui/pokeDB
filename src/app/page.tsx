@@ -7,16 +7,25 @@ import AnimatedPokeball from "@/components/AnimatedPokeball";
 import AnimatedBackground, { TitleDimensions } from '@/components/AnimatedBackground';
 import Title from '@/components/Title';
 import ClickHintModal from '@/components/ClickHintModal';
-import { useState } from 'react';
+import Footer from '@/components/Footer';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [titleDimensions, setTitleDimensions] = useState<TitleDimensions | null>(null);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
   return (
-    <main>
+    <main className="overflow-hidden h-screen">
       <AnimatedBackground titleDimensions={titleDimensions} />
       
-      <div className="relative min-h-screen flex flex-col">
+      <div className="relative h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 flex-col items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
           <div className="flex flex-col items-center gap-8">
             <div className="flex items-center justify-center">
@@ -41,6 +50,7 @@ export default function Home() {
       </div>
 
       <ClickHintModal />
+      <Footer />
     </main>
   );
 }
