@@ -6,6 +6,7 @@ import GenerationButtons from "@/components/GenerationButtons";
 import AnimatedPokeball from "@/components/AnimatedPokeball";
 import AnimatedBackground, { TitleDimensions } from '@/components/AnimatedBackground';
 import Title from '@/components/Title';
+import ClickHintModal from '@/components/ClickHintModal';
 import { useState } from 'react';
 
 export default function Home() {
@@ -38,6 +39,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <ClickHintModal />
     </main>
   );
 }

@@ -2,19 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 
-// Pokémon-themed colors (pastel versions)
-const colors = [
-  '#FFB3B3', // Soft Pokémon Red
-  '#A8C5E8', // Soft Pokémon Blue  
-  '#FFE89B', // Soft Pikachu Yellow
-  '#FFB8B8', // Soft Pokéball Red
-  '#C4E4F7', // Soft Water Blue
-  '#FFF1A8', // Soft Electric Yellow
-  '#F5C4D6', // Soft Fairy Pink
-  '#D4C8F0'  // Soft Psychic Purple
-];
-
-// Fixed colors for click-spawned traces
+// Fixed colors for each direction
 const clickColors = {
   right: '#FFB3B3', // Soft Red
   left: '#FFE89B',  // Soft Yellow
@@ -23,137 +11,79 @@ const clickColors = {
 };
 
 const gridSize = 10;
+const traceLength = gridSize * 5;
+const traceSpeed = 0.5;
+const traceOpacity = 0.7;
 
 type Direction = 'left' | 'right' | 'up' | 'down';
 
 class Line {
-  isClickSpawned: boolean;
-  maxLength: number;
-  currentLength: number;
-  isHorizontal: boolean;
-  row?: number;
-  col?: number;
-  y: number;
   x: number;
-  startX?: number;
-  startY?: number;
-  direction: number;
-  speed: number;
-  opacity: number;
+  y: number;
+  direction: Direction;
   color: string;
-  fixedColor: string | null;
+  isUserClick: boolean;
+  maxDistance: number;
+  distanceTraveled: number;
+  currentLength: number;
+  opacity: number;
 
-  constructor(
-    clickX: number | null = null,
-    clickY: number | null = null,
-    forceDirection: Direction | null = null,
-    canvasWidth: number,
-    canvasHeight: number,
-    color: string | null = null
-  ) {
-    this.isClickSpawned = clickX !== null && clickY !== null;
-    this.fixedColor = color;
-    this.maxLength = gridSize * 5;
-    this.currentLength = this.isClickSpawned ? 0 : this.maxLength;
-    
-    this.isHorizontal = false;
-    this.y = 0;
-    this.x = 0;
-    this.direction = 1;
-    this.speed = 0;
-    this.opacity = 0;
-    this.color = '';
-    
-    this.reset(clickX, clickY, forceDirection, canvasWidth, canvasHeight);
-  }
-
-  reset(
-    clickX: number | null = null,
-    clickY: number | null = null,
-    forceDirection: Direction | null = null,
-    canvasWidth: number,
-    canvasHeight: number
-  ) {
-    if (clickX !== null && clickY !== null) {
-      if (forceDirection !== null) {
-        this.isHorizontal = forceDirection === 'left' || forceDirection === 'right';
-        
-        if (this.isHorizontal) {
-          this.row = Math.round(clickY / gridSize);
-          this.y = this.row * gridSize;
-          this.startX = clickX;
-          this.x = clickX;
-          this.direction = forceDirection === 'right' ? 1 : -1;
-        } else {
-          this.col = Math.round(clickX / gridSize);
-          this.x = this.col * gridSize;
-          this.startY = clickY;
-          this.y = clickY;
-          this.direction = forceDirection === 'down' ? 1 : -1;
-        }
-      } else {
-        this.isHorizontal = Math.random() > 0.5;
-        
-        if (this.isHorizontal) {
-          this.row = Math.round(clickY / gridSize);
-          this.y = this.row * gridSize;
-          this.startX = clickX;
-          this.x = clickX;
-          this.direction = 1;
-        } else {
-          this.col = Math.round(clickX / gridSize);
-          this.x = this.col * gridSize;
-          this.startY = clickY;
-          this.y = clickY;
-          this.direction = 1;
-        }
-      }
-    } else {
-      this.isHorizontal = Math.random() > 0.5;
-      
-      if (this.isHorizontal) {
-        this.row = Math.floor(Math.random() * (canvasHeight / gridSize));
-        this.y = this.row * gridSize;
-        this.x = -200;
-        this.direction = 1;
-      } else {
-        this.col = Math.floor(Math.random() * (canvasWidth / gridSize));
-        this.x = this.col * gridSize;
-        this.y = -200;
-        this.direction = 1;
-      }
-    }
-
-    this.speed = this.isClickSpawned 
-      ? 0.5
-      : 0.2 + Math.random() * 0.5;
-    this.opacity = 0.5 + Math.random() * 0.3;
-    this.color = this.fixedColor || colors[Math.floor(Math.random() * colors.length)];
+  constructor(x: number, y: number, direction: Direction, color: string, isUserClick: boolean = false) {
+    this.x = x;
+    this.y = y;
+    this.direction = direction;
+    this.color = color;
+    this.isUserClick = isUserClick;
+    this.maxDistance = isUserClick ? gridSize * 15 : Infinity;
+    this.distanceTraveled = 0;
+    this.currentLength = 0;
+    this.opacity = traceOpacity;
   }
 
   update(canvasWidth: number, canvasHeight: number): boolean {
-    if (this.isClickSpawned && this.currentLength < this.maxLength) {
-      this.currentLength += this.speed * 2;
-      if (this.currentLength > this.maxLength) {
-        this.currentLength = this.maxLength;
+    // Grow the tail
+    if (this.currentLength < traceLength) {
+      this.currentLength += traceSpeed * 2;
+      if (this.currentLength > traceLength) {
+        this.currentLength = traceLength;
       }
     }
 
-    if (this.isHorizontal) {
-      this.x += this.speed * this.direction;
-      if (this.direction > 0 && this.x - this.currentLength > canvasWidth) {
-        return true;
-      } else if (this.direction < 0 && this.x + this.currentLength < 0) {
-        return true;
-      }
-    } else {
-      this.y += this.speed * this.direction;
-      if (this.direction > 0 && this.y - this.currentLength > canvasHeight) {
-        return true;
-      } else if (this.direction < 0 && this.y + this.currentLength < 0) {
-        return true;
+    // Track distance traveled
+    this.distanceTraveled += traceSpeed;
+    if (this.distanceTraveled >= this.maxDistance) {
+      return true; // Mark for removal
+    }
+
+    // Fade out for user click traces
+    if (this.isUserClick && this.maxDistance !== Infinity) {
+      const fadeStart = this.maxDistance * 0.6;
+      if (this.distanceTraveled > fadeStart) {
+        const fadeProgress = (this.distanceTraveled - fadeStart) / (this.maxDistance - fadeStart);
+        this.opacity = traceOpacity * (1 - fadeProgress);
       }
     }
+
+    // Move the trace
+    switch (this.direction) {
+      case 'right':
+        this.x += traceSpeed;
+        if (this.x - this.currentLength > canvasWidth) return true;
+        break;
+      case 'left':
+        this.x -= traceSpeed;
+        if (this.x + this.currentLength < 0) return true;
+        break;
+      case 'down':
+        this.y += traceSpeed;
+        if (this.y - this.currentLength > canvasHeight) return true;
+        break;
+      case 'up':
+        this.y -= traceSpeed;
+        if (this.y + this.currentLength < 0) return true;
+        break;
+    }
+
     return false;
   }
 
@@ -162,39 +92,36 @@ class Line {
     ctx.lineWidth = gridSize - 2;
     ctx.lineCap = 'butt';
 
-    const length = this.isClickSpawned ? this.currentLength : this.maxLength;
-
-    let gradient: CanvasGradient;
     let startX: number, startY: number, endX: number, endY: number;
 
-    if (this.isHorizontal) {
-      if (this.direction > 0) {
-        startX = this.x - length;
+    switch (this.direction) {
+      case 'right':
+        startX = this.x - this.currentLength;
         endX = this.x;
         startY = endY = this.y;
-      } else {
-        startX = this.x + length;
+        break;
+      case 'left':
+        startX = this.x + this.currentLength;
         endX = this.x;
         startY = endY = this.y;
-      }
-      gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-    } else {
-      if (this.direction > 0) {
+        break;
+      case 'down':
         startX = endX = this.x;
-        startY = this.y - length;
+        startY = this.y - this.currentLength;
         endY = this.y;
-      } else {
+        break;
+      case 'up':
         startX = endX = this.x;
-        startY = this.y + length;
+        startY = this.y + this.currentLength;
         endY = this.y;
-      }
-      gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+        break;
     }
-    
+
+    const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
     gradient.addColorStop(0, `${this.color}00`);
     gradient.addColorStop(0.3, this.color);
     gradient.addColorStop(1, this.color);
-    
+
     ctx.strokeStyle = gradient;
     ctx.globalAlpha = this.opacity;
     ctx.beginPath();
@@ -202,10 +129,11 @@ class Line {
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
+    // Draw accent square at head
     const accentSize = gridSize - 2;
     ctx.fillStyle = this.color;
     ctx.globalAlpha = this.opacity * 0.6;
-    ctx.fillRect(this.x - accentSize/2, this.y - accentSize/2, accentSize, accentSize);
+    ctx.fillRect(this.x - accentSize / 2, this.y - accentSize / 2, accentSize, accentSize);
 
     ctx.restore();
   }
@@ -233,6 +161,7 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
     if (!ctx) return;
 
     let animationFrameId: number;
+    let centerLines: Line[] = [];
     let clickLines: Line[] = [];
 
     const resizeCanvas = () => {
@@ -242,114 +171,95 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    
-
-    // Center burst lines that create kaleidoscope effect
-    let centerLines: Line[] = [];
-    const horizontalSpawnInterval = 500; // 2 seconds between horizontal spawns
-    const verticalSpawnInterval = 200;   // 2 seconds between vertical spawns
+    // Spawn configuration
+    const horizontalSpawnInterval = 500;
+    const verticalSpawnInterval = 200;
     let lastHorizontalSpawn = 0;
-    let lastVerticalSpawn = 1000; // Offset so they don't spawn at the same time
-    
+    let lastVerticalSpawn = 250;
+
     const horizontalSpawnPoints = 4;
     const verticalSpawnPoints = 15;
+    const horizontalSpacing = 10;
+
     let currentHorizontalIndex = 0;
     let currentVerticalIndex = 0;
-    let verticalDirection: 'right' | 'left' = 'right';
 
     const spawnNextHorizontalTrace = () => {
       if (!titleDimensions) return;
-      
+
       const { x: centerX, y: centerY } = titleDimensions;
-      
-      const horizontalSpacing = 8;
-      const totalHorizontalHeight = horizontalSpawnPoints * horizontalSpacing;
-      
-      const randomOffset = (Math.random() - 0.5) * 6;
-      const y = centerY - totalHorizontalHeight / 2 + currentHorizontalIndex * horizontalSpacing + randomOffset;
-      
-      (['left', 'right'] as Direction[]).forEach(dir => {
-        centerLines.push(new Line(centerX, y, dir, canvas.width, canvas.height, clickColors[dir]));
-      });
-      
+      const totalHeight = (horizontalSpawnPoints - 1) * horizontalSpacing;
+      const y = centerY - totalHeight / 2 + currentHorizontalIndex * horizontalSpacing;
+
+      centerLines.push(new Line(centerX, y, 'left', clickColors.left));
+      centerLines.push(new Line(centerX, y, 'right', clickColors.right));
+
       currentHorizontalIndex = (currentHorizontalIndex + 1) % horizontalSpawnPoints;
     };
 
     const spawnNextVerticalTrace = () => {
       if (!titleDimensions) return;
-      
+
       const { x: centerX, y: centerY, width } = titleDimensions;
-      
-      const baseX = centerX - width / 2 + (width / (verticalSpawnPoints - 1)) * currentVerticalIndex;
-      const randomXOffset = (Math.random() - 0.5) * 30;
-      const x = baseX + randomXOffset;
-      
-      (['up', 'down'] as Direction[]).forEach(dir => {
-        const line = new Line(x, centerY, dir, canvas.width, canvas.height, clickColors[dir]);
-        if (verticalDirection === 'right') {
-          line.x = x + Math.random() * 20;
-        } else {
-          line.x = x - Math.random() * 20;
-        }
-        centerLines.push(line);
-      });
-      
-      currentVerticalIndex++;
-      if (currentVerticalIndex >= verticalSpawnPoints) {
-        currentVerticalIndex = 0;
-        verticalDirection = verticalDirection === 'right' ? 'left' : 'right';
-      }
+      const spacing = width / (verticalSpawnPoints - 1);
+      const x = centerX - width / 2 + currentVerticalIndex * spacing;
+
+      centerLines.push(new Line(x, centerY, 'up', clickColors.up));
+      centerLines.push(new Line(x, centerY, 'down', clickColors.down));
+
+      currentVerticalIndex = (currentVerticalIndex + 1) % verticalSpawnPoints;
     };
 
     const handleClick = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
-      
-      (Object.keys(clickColors) as Direction[]).forEach(dir => {
-        clickLines.push(new Line(clickX, clickY, dir, canvas.width, canvas.height, clickColors[dir]));
+
+      (['right', 'left', 'up', 'down'] as Direction[]).forEach(dir => {
+        clickLines.push(new Line(clickX, clickY, dir, clickColors[dir], true));
       });
     };
 
     window.addEventListener('click', handleClick);
 
     const animate = (timestamp: number) => {
-      // Spawn horizontal traces one at a time
+      // Spawn traces at fixed intervals
       if (timestamp - lastHorizontalSpawn > horizontalSpawnInterval) {
         spawnNextHorizontalTrace();
         lastHorizontalSpawn = timestamp;
       }
-      
-      // Spawn vertical traces one at a time
+
       if (timestamp - lastVerticalSpawn > verticalSpawnInterval) {
         spawnNextVerticalTrace();
         lastVerticalSpawn = timestamp;
       }
 
+      // Clear canvas
       ctx.fillStyle = 'rgba(255, 255, 255, 1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Draw grid
       ctx.strokeStyle = '#f0f0f0';
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.3;
-      
+
       for (let x = 0; x <= canvas.width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
-      
+
       for (let y = 0; y <= canvas.height; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
       }
-      
+
       ctx.globalAlpha = 1;
 
-      // Update and draw center burst lines
+      // Update and draw center lines
       centerLines = centerLines.filter(line => {
         const shouldRemove = line.update(canvas.width, canvas.height);
         if (!shouldRemove) {
@@ -358,6 +268,7 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
         return !shouldRemove;
       });
 
+      // Update and draw click lines
       clickLines = clickLines.filter(line => {
         const shouldRemove = line.update(canvas.width, canvas.height);
         if (!shouldRemove) {
@@ -366,6 +277,7 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
         return !shouldRemove;
       });
 
+      // Radial gradient overlay
       const gradient = ctx.createRadialGradient(
         canvas.width / 2, canvas.height / 2, 0,
         canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) * 1.2
@@ -374,7 +286,7 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
       gradient.addColorStop(0.4, 'rgba(240, 240, 240, 0.1)');
       gradient.addColorStop(0.7, 'rgba(200, 200, 200, 0.4)');
       gradient.addColorStop(1, 'rgba(150, 150, 150, 0.7)');
-      
+
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
