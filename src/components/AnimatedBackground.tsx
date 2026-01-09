@@ -2,12 +2,11 @@
 
 import React, { useEffect, useRef } from 'react';
 
-// Fixed colors for each direction
 const clickColors = {
-  right: '#FFB3B3', // Soft Red
-  left: '#FFE89B',  // Soft Yellow
-  down: '#A8C5E8',  // Soft Blue
-  up: '#B8E6B8'     // Soft Green
+  right: '#FFB3B3',
+  left: '#FFE89B',
+  down: '#A8C5E8',
+  up: '#B8E6B8'
 };
 
 const gridSize = 10;
@@ -41,21 +40,14 @@ class Line {
   }
 
   update(canvasWidth: number, canvasHeight: number): boolean {
-    // Grow the tail
     if (this.currentLength < traceLength) {
       this.currentLength += traceSpeed * 2;
-      if (this.currentLength > traceLength) {
-        this.currentLength = traceLength;
-      }
+      if (this.currentLength > traceLength) this.currentLength = traceLength;
     }
 
-    // Track distance traveled
     this.distanceTraveled += traceSpeed;
-    if (this.distanceTraveled >= this.maxDistance) {
-      return true; // Mark for removal
-    }
+    if (this.distanceTraveled >= this.maxDistance) return true;
 
-    // Fade out for user click traces
     if (this.isUserClick && this.maxDistance !== Infinity) {
       const fadeStart = this.maxDistance * 0.6;
       if (this.distanceTraveled > fadeStart) {
@@ -64,7 +56,6 @@ class Line {
       }
     }
 
-    // Move the trace
     switch (this.direction) {
       case 'right':
         this.x += traceSpeed;
@@ -83,7 +74,6 @@ class Line {
         if (this.y + this.currentLength < 0) return true;
         break;
     }
-
     return false;
   }
 
@@ -129,7 +119,6 @@ class Line {
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
-    // Draw accent square at head
     const accentSize = gridSize - 2;
     ctx.fillStyle = this.color;
     ctx.globalAlpha = this.opacity * 0.6;
@@ -171,7 +160,6 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Spawn configuration
     const horizontalSpawnInterval = 500;
     const verticalSpawnInterval = 200;
     let lastHorizontalSpawn = 0;
@@ -191,8 +179,14 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
       const totalHeight = (horizontalSpawnPoints - 1) * horizontalSpacing;
       const y = centerY - totalHeight / 2 + currentHorizontalIndex * horizontalSpacing;
 
+      // Spawn from center going both directions
       centerLines.push(new Line(centerX, y, 'left', clickColors.left));
       centerLines.push(new Line(centerX, y, 'right', clickColors.right));
+
+      // Spawn from left edge going right
+      centerLines.push(new Line(0, y, 'right', clickColors.right));
+      // Spawn from right edge going left
+      centerLines.push(new Line(canvas.width, y, 'left', clickColors.left));
 
       currentHorizontalIndex = (currentHorizontalIndex + 1) % horizontalSpawnPoints;
     };
@@ -204,8 +198,14 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
       const spacing = width / (verticalSpawnPoints - 1);
       const x = centerX - width / 2 + currentVerticalIndex * spacing;
 
+      // Spawn from center going both directions
       centerLines.push(new Line(x, centerY, 'up', clickColors.up));
       centerLines.push(new Line(x, centerY, 'down', clickColors.down));
+
+      // Spawn from top edge going down
+      centerLines.push(new Line(x, 0, 'down', clickColors.down));
+      // Spawn from bottom edge going up
+      centerLines.push(new Line(x, canvas.height, 'up', clickColors.up));
 
       currentVerticalIndex = (currentVerticalIndex + 1) % verticalSpawnPoints;
     };
@@ -223,7 +223,6 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
     window.addEventListener('click', handleClick);
 
     const animate = (timestamp: number) => {
-      // Spawn traces at fixed intervals
       if (timestamp - lastHorizontalSpawn > horizontalSpawnInterval) {
         spawnNextHorizontalTrace();
         lastHorizontalSpawn = timestamp;
@@ -234,11 +233,9 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
         lastVerticalSpawn = timestamp;
       }
 
-      // Clear canvas
       ctx.fillStyle = 'rgba(255, 255, 255, 1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw grid
       ctx.strokeStyle = '#f0f0f0';
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.3;
@@ -259,25 +256,18 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
 
       ctx.globalAlpha = 1;
 
-      // Update and draw center lines
       centerLines = centerLines.filter(line => {
         const shouldRemove = line.update(canvas.width, canvas.height);
-        if (!shouldRemove) {
-          line.draw(ctx);
-        }
+        if (!shouldRemove) line.draw(ctx);
         return !shouldRemove;
       });
 
-      // Update and draw click lines
       clickLines = clickLines.filter(line => {
         const shouldRemove = line.update(canvas.width, canvas.height);
-        if (!shouldRemove) {
-          line.draw(ctx);
-        }
+        if (!shouldRemove) line.draw(ctx);
         return !shouldRemove;
       });
 
-      // Radial gradient overlay
       const gradient = ctx.createRadialGradient(
         canvas.width / 2, canvas.height / 2, 0,
         canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) * 1.2

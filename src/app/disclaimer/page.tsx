@@ -8,7 +8,7 @@ export default function Disclaimer() {
           ← Back to Home
         </Link>
         
-        <h1 className="text-3xl font-bold mb-8">Disclaimer & Legal Notice</h1>
+        <h1 className="text-3xl font-bold mb-8">Disclaimer &amp; Legal Notice</h1>
         
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">Trademark Notice</h2>
@@ -27,7 +27,7 @@ export default function Disclaimer() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">Fair Use Statement</h2>
           <p className="text-gray-700 mb-4">
-            The use of Pokémon imagery, names, and related content on this website is believed to fall under "fair use" as defined by copyright law, as this project is:
+            The use of Pokémon imagery, names, and related content on this website is believed to fall under &ldquo;fair use&rdquo; as defined by copyright law, as this project is:
           </p>
           <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
             <li>Non-commercial in nature with no monetary gain</li>
@@ -54,7 +54,7 @@ export default function Disclaimer() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">No Warranty</h2>
           <p className="text-gray-700 mb-4">
-            This website is provided "as is" without warranty of any kind. The information presented may contain errors or inaccuracies. For official Pokémon information, please visit the official Pokémon website at <a href="https://www.pokemon.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">pokemon.com</a>.
+            This website is provided &ldquo;as is&rdquo; without warranty of any kind. The information presented may contain errors or inaccuracies. For official Pokémon information, please visit the official Pokémon website at <a href="https://www.pokemon.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">pokemon.com</a>.
           </p>
         </section>
 
