@@ -71,7 +71,7 @@ export default function SpriteGrid({ generation }: SpriteGridProps) {
       {pokemonList.map((pokemon, index) => (
         <div
           key={index}
-          className="w-20 h-20 flex items-center justify-center shadow-lg transform transition duration-300 rounded-3xl hover:scale-150 hover:bg-gray-100 hover:z-10 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300"
+          className="w-20 h-20 flex items-center justify-center bg-white shadow-lg transform transition duration-300 rounded-3xl hover:scale-150 hover:bg-gray-100 hover:z-10 active:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-300"
         >
           <Image
             src={pokemon.sprite}

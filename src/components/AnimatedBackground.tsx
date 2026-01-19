@@ -236,7 +236,7 @@ export default function AnimatedBackground({ titleDimensions }: AnimatedBackgrou
       ctx.fillStyle = 'rgba(255, 255, 255, 1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.strokeStyle = '#f0f0f0';
+      ctx.strokeStyle = '#e9e9e9';
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.3;
 

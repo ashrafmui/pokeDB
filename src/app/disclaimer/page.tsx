@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import BackgroundGradient from '@/components/BackgroundGradient';
 
 export default function Disclaimer() {
   return (
-    <main className="min-h-screen bg-white py-12 px-4 sm:px-8">
+    <main className="min-h-screen py-12 px-4 sm:px-8">
+      <BackgroundGradient />
       <div className="max-w-3xl mx-auto">
         <Link href="/" className="text-blue-600 hover:underline mb-8 inline-block">
           ← Back to Home

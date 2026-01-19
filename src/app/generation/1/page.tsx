@@ -5,11 +5,15 @@ import GenerationButtons from "@/components/GenerationButtons";
 import SpriteGrid from "@/components/SpriteGrid";
 import {ArrowLeftIcon} from "@radix-ui/react-icons"
 import { Button } from "@/components/ui/button"
+import BackgroundGradient from '@/components/BackgroundGradient';
+
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-background">
-        <main>
+    <>
+    <BackgroundGradient />
+    <div className="flex flex-1 flex-col items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+        <main className = "relative z-10">
             <div className="flex items-center justify-left">
               <Link href = "/" passHref>
                 <Button variant="outline" size="icon" className = "rounded-full p-2">
@@ -41,5 +45,6 @@ export default function Home() {
           </a>
         </footer>
     </div>
+    </>
   );
 }
