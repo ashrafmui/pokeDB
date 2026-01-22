@@ -14,26 +14,141 @@ datasource db {
 }
 
 model Pokemon {
-  id          Int      @id
-  name        String
-  sprite      String
-  generation  Int
-  types       Type[]
-  stats       Stat[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                Int       @id
+  name              String
+  sprite            String
+  spriteShiny       String?
+  spriteBack        String?
+  spriteBackShiny   String?
+  spriteArtwork     String?
+  spriteHome        String?
+  generation        Int
+  height            Int?
+  weight            Int?
+  baseExperience    Int?
+  captureRate       Int?
+  baseHappiness     Int?
+  genderRateFemale  Float?
+  growthRate        String?
+  habitat           String?
+  genus             String?
+  color             String?
+  shape             String?
+  isBaby            Boolean   @default(false)
+  isLegendary       Boolean   @default(false)
+  isMythical        Boolean   @default(false)
+  hatchCounter      Int?
+  evolvesFromId     Int?
+  evolutionChainId  Int?
+  types             Type[]
+  stats             Stat[]
+  abilities         PokemonAbility[]
+  pokedexEntries    PokedexEntry[]
+  eggGroups         EggGroup[]
+  moves             PokemonMove[]
+  encounters        Encounter[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Type {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  pokemon   Pokemon[]
+  id               Int       @id @default(autoincrement())
+  name             String    @unique
+  doubleDamageFrom String[]
+  doubleDamageTo   String[]
+  halfDamageFrom   String[]
+  halfDamageTo     String[]
+  noDamageFrom     String[]
+  noDamageTo       String[]
+  pokemon          Pokemon[]
+  moves            Move[]
 }
 
 model Stat {
   id        Int     @id @default(autoincrement())
   name      String
   value     Int
+  effort    Int     @default(0)
   pokemonId Int
-  pokemon   Pokemon @relation(fields: [pokemonId], references: [id])
+  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+}
+
+model Ability {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  effect      String?
+  shortEffect String?
+  pokemon     PokemonAbility[]
+}
+
+model PokemonAbility {
+  id        Int     @id @default(autoincrement())
+  pokemonId Int
+  abilityId Int
+  isHidden  Boolean @default(false)
+  slot      Int
+  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  ability   Ability @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+
+  @@unique([pokemonId, abilityId])
+}
+
+model PokedexEntry {
+  id          Int     @id @default(autoincrement())
+  version     String
+  description String
+  pokemonId   Int
+  pokemon     Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+}
+
+model EggGroup {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique
+  pokemon Pokemon[]
+}
+
+model Move {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  typeId      Int?
+  type        Type?         @relation(fields: [typeId], references: [id])
+  power       Int?
+  accuracy    Int?
+  pp          Int?
+  priority    Int           @default(0)
+  damageClass String?
+  effect      String?
+  shortEffect String?
+  target      String?
+  pokemon     PokemonMove[]
+}
+
+model PokemonMove {
+  id           Int     @id @default(autoincrement())
+  pokemonId    Int
+  moveId       Int
+  learnMethod  String
+  levelLearned Int?
+  versionGroup String?
+  pokemon      Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  move         Move    @relation(fields: [moveId], references: [id], onDelete: Cascade)
+
+  @@unique([pokemonId, moveId, learnMethod, versionGroup])
+}
+
+model EvolutionChain {
+  id    Int  @id
+  chain Json
+}
+
+model Encounter {
+  id           Int     @id @default(autoincrement())
+  pokemonId    Int
+  locationName String
+  versionName  String
+  method       String
+  minLevel     Int?
+  maxLevel     Int?
+  chance       Int?
+  pokemon      Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
 }
