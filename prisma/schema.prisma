@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,41 +8,41 @@ datasource db {
 }
 
 model Pokemon {
-  id                Int       @id
-  name              String
-  sprite            String
-  spriteShiny       String?
-  spriteBack        String?
-  spriteBackShiny   String?
-  spriteArtwork     String?
-  spriteHome        String?
-  generation        Int
-  height            Int?
-  weight            Int?
-  baseExperience    Int?
-  captureRate       Int?
-  baseHappiness     Int?
-  genderRateFemale  Float?
-  growthRate        String?
-  habitat           String?
-  genus             String?
-  color             String?
-  shape             String?
-  isBaby            Boolean   @default(false)
-  isLegendary       Boolean   @default(false)
-  isMythical        Boolean   @default(false)
-  hatchCounter      Int?
-  evolvesFromId     Int?
-  evolutionChainId  Int?
-  types             Type[]
-  stats             Stat[]
-  abilities         PokemonAbility[]
-  pokedexEntries    PokedexEntry[]
-  eggGroups         EggGroup[]
-  moves             PokemonMove[]
-  encounters        Encounter[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               Int              @id
+  name             String
+  sprite           String
+  generation       Int
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  baseExperience   Int?
+  baseHappiness    Int?
+  captureRate      Int?
+  color            String?
+  evolutionChainId Int?
+  evolvesFromId    Int?
+  genderRateFemale Float?
+  genus            String?
+  growthRate       String?
+  habitat          String?
+  hatchCounter     Int?
+  height           Int?
+  isBaby           Boolean          @default(false)
+  isLegendary      Boolean          @default(false)
+  isMythical       Boolean          @default(false)
+  shape            String?
+  spriteArtwork    String?
+  spriteBack       String?
+  spriteBackShiny  String?
+  spriteHome       String?
+  spriteShiny      String?
+  weight           Int?
+  encounters       Encounter[]
+  pokedexEntries   PokedexEntry[]
+  abilities        PokemonAbility[]
+  moves            PokemonMove[]
+  stats            Stat[]
+  eggGroups        EggGroup[]       @relation("EggGroupToPokemon")
+  types            Type[]           @relation("PokemonToType")
 }
 
 model Type {
@@ -60,16 +54,16 @@ model Type {
   halfDamageTo     String[]
   noDamageFrom     String[]
   noDamageTo       String[]
-  pokemon          Pokemon[]
   moves            Move[]
+  pokemon          Pokemon[] @relation("PokemonToType")
 }
 
 model Stat {
   id        Int     @id @default(autoincrement())
   name      String
   value     Int
-  effort    Int     @default(0)
   pokemonId Int
+  effort    Int     @default(0)
   pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
 }
 
@@ -87,8 +81,8 @@ model PokemonAbility {
   abilityId Int
   isHidden  Boolean @default(false)
   slot      Int
-  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
   ability   Ability @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
 
   @@unique([pokemonId, abilityId])
 }
@@ -104,14 +98,13 @@ model PokedexEntry {
 model EggGroup {
   id      Int       @id @default(autoincrement())
   name    String    @unique
-  pokemon Pokemon[]
+  pokemon Pokemon[] @relation("EggGroupToPokemon")
 }
 
 model Move {
   id          Int           @id @default(autoincrement())
   name        String        @unique
   typeId      Int?
-  type        Type?         @relation(fields: [typeId], references: [id])
   power       Int?
   accuracy    Int?
   pp          Int?
@@ -120,6 +113,7 @@ model Move {
   effect      String?
   shortEffect String?
   target      String?
+  type        Type?         @relation(fields: [typeId], references: [id])
   pokemon     PokemonMove[]
 }
 
@@ -130,8 +124,8 @@ model PokemonMove {
   learnMethod  String
   levelLearned Int?
   versionGroup String?
-  pokemon      Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
   move         Move    @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  pokemon      Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
 
   @@unique([pokemonId, moveId, learnMethod, versionGroup])
 }
