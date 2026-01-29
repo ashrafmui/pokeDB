@@ -52,9 +52,7 @@ import Image from "next/image";
 import GenerationButtons from "@/components/GenerationButtons";
 import BackgroundGradient from '@/components/BackgroundGradient';
 import Header from "@/components/Header";
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 async function getPokemon(generation: number) {
   const pokemon = await prisma.pokemon.findMany({

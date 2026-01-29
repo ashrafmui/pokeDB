@@ -1,10 +1,11 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import BackgroundGradient from '@/components/BackgroundGradient';
 import { ArrowLeftIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
 import PokedexEntrySelector from '@/components/PokedexEntrySelector';
+import SpriteCarousel from '@/components/SpriteCarousel';
+import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 
 async function getPokemon(id: number) {
   const pokemon = await prisma.pokemon.findUnique({
@@ -54,18 +55,19 @@ export default async function PokemonPage({ params }: { params: { id: string } }
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Side - Sprite and Evolution */}
+            {/* Left Side - Sprites and Evolution */}
             <div className="space-y-6">
-              {/* Sprite Card */}
-              <div className="bg-white rounded-2xl shadow-xl p-8 flex items-center justify-center">
-                <Image
-                  src={pokemon.sprite}
-                  alt={pokemon.name}
-                  width={300}
-                  height={300}
-                  className="object-contain"
-                />
-              </div>
+              {/* High-res Sprite Carousel */}
+              <SpriteCarousel
+                pokemonId={pokemon.id}
+                pokemonName={pokemon.name}
+              />
+
+              {/* Small Sprite Variants */}
+              <PokemonSpriteVariants
+                pokemonId={pokemon.id}
+                pokemonName={pokemon.name}
+              />
 
               {/* Evolution Chain */}
               <div className="bg-white rounded-2xl shadow-xl p-6">
@@ -99,7 +101,6 @@ export default async function PokemonPage({ params }: { params: { id: string } }
             <div className="space-y-6">
               {/* Pokédex Entry with Version Selector */}
               <PokedexEntrySelector entries={pokemon.pokedexEntries} />
-
 
               {/* Stats Card */}
               <div className="bg-white rounded-2xl shadow-xl p-6">

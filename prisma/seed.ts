@@ -225,13 +225,15 @@ async function seedPokemon() {
             id: pokeData.id,
             name: pokeData.name,
             sprite: pokeData.sprites.versions?.['generation-vii']?.['ultra-sun-ultra-moon']?.front_default 
-              || pokeData.sprites.front_default || '',
+            || pokeData.sprites.front_default || '',
             spriteShiny: pokeData.sprites.versions?.['generation-vii']?.['ultra-sun-ultra-moon']?.front_shiny 
-              || pokeData.sprites.front_shiny,
+            || pokeData.sprites.front_shiny,
             spriteBack: pokeData.sprites.back_default,
             spriteBackShiny: pokeData.sprites.back_shiny,
             spriteArtwork: pokeData.sprites.other?.['official-artwork']?.front_default,
+            spriteArtworkShiny: pokeData.sprites.other?.['official-artwork']?.front_shiny,    // Add this
             spriteHome: pokeData.sprites.other?.home?.front_default,
+            spriteHomeShiny: pokeData.sprites.other?.home?.front_shiny,                        // Add this
             generation: parseInt(gen),
             height: pokeData.height,
             weight: pokeData.weight,
