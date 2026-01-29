@@ -98,10 +98,8 @@ export default async function PokemonPage({ params }: { params: { id: string } }
             {/* Right Side - Info and Stats */}
             <div className="space-y-6">
               {/* Pokédex Entry with Version Selector */}
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-xl font-semibold mb-3">Pokédex Entry</h2>
-                <PokedexEntrySelector entries={pokemon.pokedexEntries} />
-              </div>
+              <PokedexEntrySelector entries={pokemon.pokedexEntries} />
+
 
               {/* Stats Card */}
               <div className="bg-white rounded-2xl shadow-xl p-6">
