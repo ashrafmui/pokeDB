@@ -6,6 +6,29 @@ import { Button } from '@/components/ui/button';
 import PokedexEntrySelector from '@/components/PokedexEntrySelector';
 import SpriteCarousel from '@/components/SpriteCarousel';
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
+import BaseStats from '@/components/BaseStats';
+
+// Type colors for the stats display
+const typeColors: Record<string, string> = {
+  normal: '#a8a878',
+  fire: '#f08030',
+  water: '#6890f0',
+  electric: '#f8d030',
+  grass: '#78c850',
+  ice: '#98d8d8',
+  fighting: '#c03028',
+  poison: '#a040a0',
+  ground: '#e0c068',
+  flying: '#a890f0',
+  psychic: '#f85888',
+  bug: '#a8b820',
+  rock: '#b8a038',
+  ghost: '#705898',
+  dragon: '#7038f8',
+  dark: '#705848',
+  steel: '#b8b8d0',
+  fairy: '#ee99ac',
+};
 
 async function getPokemon(id: number) {
   const pokemon = await prisma.pokemon.findUnique({
@@ -25,6 +48,9 @@ export default async function PokemonPage({ params }: { params: { id: string } }
   if (!pokemon) {
     return <div>Pokemon not found</div>;
   }
+
+  const primaryType = pokemon.types[0]?.name || 'normal';
+  const primaryColor = typeColors[primaryType] || '#8b5cf6';
 
   return (
     <>
@@ -103,37 +129,7 @@ export default async function PokemonPage({ params }: { params: { id: string } }
               <PokedexEntrySelector entries={pokemon.pokedexEntries} />
 
               {/* Stats Card */}
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-xl font-semibold mb-4">Base Stats</h2>
-                <div className="space-y-3">
-                  {pokemon.stats.map((stat) => (
-                    <div key={stat.id} className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600 capitalize">
-                          {stat.name.replace('-', ' ')}
-                        </span>
-                        <span className="text-sm font-bold text-gray-900">{stat.value}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all"
-                          style={{ width: `${Math.min(stat.value / 255 * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Total Stats */}
-                  <div className="pt-3 mt-3 border-t border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-gray-700">Total</span>
-                      <span className="text-lg font-bold text-blue-600">
-                        {pokemon.stats.reduce((sum, stat) => sum + stat.value, 0)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <BaseStats stats={pokemon.stats} primaryColor={primaryColor} />
             </div>
           </div>
         </div>
