@@ -91,7 +91,8 @@ const config: Config = {
   			}
   		},
   		fontFamily: {
-  			'pocket-monk': ['Pocket Monk', 'sans-serif']
+  			'pocket-monk': ['Pocket Monk', 'sans-serif'],
+			'pokemon-gb': ['"Pokemon GB"', 'monospace']
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

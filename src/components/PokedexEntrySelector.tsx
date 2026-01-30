@@ -104,7 +104,7 @@ export default function PokedexEntrySelector({ entries }: Props) {
         }}
       >
         <div className="h-24 overflow-y-auto">
-          <p className="text-gray-800 leading-relaxed">
+          <p className="font-pokemon-gb text-xs text-gray-800 leading-relaxed">
             {displayedEntry?.description || 'No description available'}
           </p>
         </div>
