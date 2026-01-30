@@ -129,8 +129,12 @@ export default async function PokemonPage({ params }: { params: { id: string } }
               <PokedexEntrySelector entries={pokemon.pokedexEntries} />
 
               {/* Stats Card */}
-              <BaseStats stats={pokemon.stats} primaryColor={primaryColor} />
-            </div>
+                <BaseStats 
+                  stats={pokemon.stats} 
+                  pokemonName={pokemon.name}
+                  pokemonId={pokemon.id}
+                />            
+              </div>
           </div>
         </div>
       </div>
