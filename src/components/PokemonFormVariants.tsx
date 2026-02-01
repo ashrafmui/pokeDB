@@ -39,10 +39,14 @@ const typeColors: Record<string, { bg: string; text: string }> = {
   fairy: { bg: "#EE99AC", text: "#333" },
 };
 
+const FORM_ICONS = {
+  mega: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
+  'mega-x': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
+  'mega-y': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
+  gmax: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/gigantamax-icon.png',
+};
+
 function getPokespriteUrl(pokemonName: string, formType: string): string {
-  // PokeSprite uses specific naming conventions
-  // https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/{name}.png
-  // For forms: {name}-{form}.png
   const baseName = pokemonName.toLowerCase();
   
   switch (formType) {
@@ -72,19 +76,6 @@ function getFormDisplayName(formType: string, pokemonName: string): string {
       return `Gigantamax ${capitalizedName}`;
     default:
       return capitalizedName;
-  }
-}
-
-function getFormBadge(formType: string): { label: string; color: string } {
-  switch (formType) {
-    case 'mega':
-    case 'mega-x':
-    case 'mega-y':
-      return { label: 'MEGA', color: '#8B5CF6' };
-    case 'gmax':
-      return { label: 'GMAX', color: '#EC4899' };
-    default:
-      return { label: '', color: '#888' };
   }
 }
 
@@ -164,11 +155,11 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
   }, [pokemonId, pokemonName]);
 
   if (isLoading) {
-    return null; // Don't show anything while loading
+    return null;
   }
 
   if (forms.length === 0) {
-    return null; // Don't render if no special forms exist
+    return null;
   }
 
   return (
@@ -179,13 +170,17 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
         {/* Selected Form Display */}
         {selectedForm && (
           <div className="flex flex-col items-center">
-            {/* Form Badge */}
-            <span 
-              className="px-3 py-1 rounded-full text-xs font-bold text-white mb-2"
-              style={{ backgroundColor: getFormBadge(selectedForm.formType).color }}
-            >
-              {getFormBadge(selectedForm.formType).label}
-            </span>
+            {/* Form Icon */}
+            <div className="mb-2">
+              <Image
+                src={FORM_ICONS[selectedForm.formType]}
+                alt={selectedForm.formType.includes('mega') ? 'Mega Evolution' : 'Gigantamax'}
+                width={32}
+                height={32}
+                className="object-contain"
+                unoptimized
+              />
+            </div>
             
             {/* Sprite */}
             <div className="w-40 h-40 flex items-center justify-center mb-3">
