@@ -2,29 +2,16 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, ShuffleIcon } from '@radix-ui/react-icons';
+import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon } from '@radix-ui/react-icons';
 import RandomPokemonButton from '@/components/RandomPokemonButton';
+import { getTypeRelations } from '@/lib/typeUtils';
 
 interface Type {
   id: number;
   name: string;
   slot?: number;
   [key: string]: unknown;
-}
-
-interface DamageRelations {
-  double_damage_from: { name: string }[];
-  half_damage_from: { name: string }[];
-  no_damage_from: { name: string }[];
-  double_damage_to: { name: string }[];
-  half_damage_to: { name: string }[];
-  no_damage_to: { name: string }[];
-}
-
-interface TypeData {
-  damage_relations: DamageRelations;
 }
 
 interface PokemonHeaderProps {
@@ -37,25 +24,7 @@ interface PokemonHeaderProps {
 }
 
 function TypeIcon({ typeName }: { typeName: string }) {
-  const [typeData, setTypeData] = useState<TypeData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchTypeData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`https://pokeapi.co/api/v2/type/${typeName}`);
-        const data = await response.json();
-        setTypeData(data);
-      } catch (error) {
-        console.error('Error fetching type data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTypeData();
-  }, [typeName]);
+  const typeData = getTypeRelations(typeName);
 
   return (
     <div className="relative group">
@@ -80,15 +49,15 @@ function TypeIcon({ typeName }: { typeName: string }) {
           <div className="mb-4">
             <h4 className="font-medium text-sm text-gray-600 mb-2">Defensive</h4>
             
-            {typeData.damage_relations.double_damage_from.length > 0 && (
+            {typeData.weakTo.length > 0 && (
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mb-1">Weak to (2x):</p>
                 <div className="flex flex-wrap gap-1">
-                  {typeData.damage_relations.double_damage_from.map((type) => (
-                    <div key={type.name} className="w-6 h-6 rounded-full overflow-hidden border-2 border-red-400">
+                  {typeData.weakTo.map((type) => (
+                    <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-red-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type.name}.png`}
-                        alt={type.name}
+                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        alt={type}
                         width={24}
                         height={24}
                         unoptimized
@@ -99,15 +68,15 @@ function TypeIcon({ typeName }: { typeName: string }) {
               </div>
             )}
 
-            {typeData.damage_relations.half_damage_from.length > 0 && (
+            {typeData.resistantTo.length > 0 && (
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mb-1">Resists (0.5x):</p>
                 <div className="flex flex-wrap gap-1">
-                  {typeData.damage_relations.half_damage_from.map((type) => (
-                    <div key={type.name} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
+                  {typeData.resistantTo.map((type) => (
+                    <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type.name}.png`}
-                        alt={type.name}
+                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        alt={type}
                         width={24}
                         height={24}
                         unoptimized
@@ -118,15 +87,15 @@ function TypeIcon({ typeName }: { typeName: string }) {
               </div>
             )}
 
-            {typeData.damage_relations.no_damage_from.length > 0 && (
+            {typeData.immuneTo.length > 0 && (
               <div>
                 <p className="text-xs text-gray-500 mb-1">Immune to (0x):</p>
                 <div className="flex flex-wrap gap-1">
-                  {typeData.damage_relations.no_damage_from.map((type) => (
-                    <div key={type.name} className="w-6 h-6 rounded-full overflow-hidden border-2 border-blue-400">
+                  {typeData.immuneTo.map((type) => (
+                    <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-blue-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type.name}.png`}
-                        alt={type.name}
+                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        alt={type}
                         width={24}
                         height={24}
                         unoptimized
@@ -142,53 +111,16 @@ function TypeIcon({ typeName }: { typeName: string }) {
           <div>
             <h4 className="font-medium text-sm text-gray-600 mb-2">Offensive</h4>
             
-            {typeData.damage_relations.double_damage_to.length > 0 && (
+            {typeData.resistantTo.length > 0 && (
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mb-1">Strong against (2x):</p>
                 <div className="flex flex-wrap gap-1">
-                  {typeData.damage_relations.double_damage_to.map((type) => (
-                    <div key={type.name} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
+                  {/* For offensive, we need to find types that are weak TO this type */}
+                  {typeData.weakTo.map((type) => (
+                    <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type.name}.png`}
-                        alt={type.name}
-                        width={24}
-                        height={24}
-                        unoptimized
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {typeData.damage_relations.half_damage_to.length > 0 && (
-              <div className="mb-2">
-                <p className="text-xs text-gray-500 mb-1">Weak against (0.5x):</p>
-                <div className="flex flex-wrap gap-1">
-                  {typeData.damage_relations.half_damage_to.map((type) => (
-                    <div key={type.name} className="w-6 h-6 rounded-full overflow-hidden border-2 border-red-400">
-                      <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type.name}.png`}
-                        alt={type.name}
-                        width={24}
-                        height={24}
-                        unoptimized
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {typeData.damage_relations.no_damage_to.length > 0 && (
-              <div>
-                <p className="text-xs text-gray-500 mb-1">No effect on (0x):</p>
-                <div className="flex flex-wrap gap-1">
-                  {typeData.damage_relations.no_damage_to.map((type) => (
-                    <div key={type.name} className="w-6 h-6 rounded-full overflow-hidden border-2 border-gray-400">
-                      <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type.name}.png`}
-                        alt={type.name}
+                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        alt={type}
                         width={24}
                         height={24}
                         unoptimized
@@ -199,12 +131,6 @@ function TypeIcon({ typeName }: { typeName: string }) {
               </div>
             )}
           </div>
-
-          {isLoading && (
-            <div className="absolute inset-0 bg-white/80 rounded-2xl flex items-center justify-center">
-              <p className="text-sm text-gray-500">Loading...</p>
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -213,7 +139,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
 
 export default function PokemonHeader({ pokemonId, pokemonName, types, prevId, nextId, maxId }: PokemonHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center">
       {/* Left - Back & Random */}
       <div className="flex items-center gap-2">
         <Link href="/">
@@ -222,15 +148,16 @@ export default function PokemonHeader({ pokemonId, pokemonName, types, prevId, n
           </Button>
         </Link>
         <RandomPokemonButton maxId={maxId} />
+      </div>
+
+      {/* Center Content with Nav */}
+      <div className="flex-1 flex items-center justify-center gap-4">
         <Link href={`/pokemon/${prevId}`}>
           <Button variant="outline" size="icon" className="rounded-full">
             <ChevronLeftIcon className="h-5 w-5" />
           </Button>
         </Link>
-      </div>
 
-      {/* Center Content */}
-      <div className="flex items-center gap-4">
         {/* Pokemon Number */}
         <span className="text-muted-foreground text-lg font-medium">
           #{pokemonId.toString().padStart(3, '0')}
@@ -258,14 +185,13 @@ export default function PokemonHeader({ pokemonId, pokemonName, types, prevId, n
             <TypeIcon key={type.id} typeName={type.name} />
           ))}
         </div>
-      </div>
 
-      {/* Right Navigation */}
-      <Link href={`/pokemon/${nextId}`}>
-        <Button variant="outline" size="icon" className="rounded-full">
-          <ChevronRightIcon className="h-5 w-5" />
-        </Button>
-      </Link>
+        <Link href={`/pokemon/${nextId}`}>
+          <Button variant="outline" size="icon" className="rounded-full">
+            <ChevronRightIcon className="h-5 w-5" />
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

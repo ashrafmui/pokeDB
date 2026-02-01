@@ -95,10 +95,7 @@ const config: Config = {
   				'Pocket Monk',
   				'sans-serif'
   			],
-  			'pokemon-gb': [
-  				'Pokemon GB"',
-  				'monospace'
-  			]
+  			'pokemon-gb': ['"Pokemon GB"', 'monospace'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
