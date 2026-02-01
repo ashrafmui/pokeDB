@@ -1,34 +1,13 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import BackgroundGradient from '@/components/BackgroundGradient';
-import { ArrowLeftIcon } from '@radix-ui/react-icons';
+import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
 import PokedexEntrySelector from '@/components/PokedexEntrySelector';
 import SpriteCarousel from '@/components/SpriteCarousel';
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import BaseStats from '@/components/BaseStats';
-
-// Type colors for the stats display
-const typeColors: Record<string, string> = {
-  normal: '#a8a878',
-  fire: '#f08030',
-  water: '#6890f0',
-  electric: '#f8d030',
-  grass: '#78c850',
-  ice: '#98d8d8',
-  fighting: '#c03028',
-  poison: '#a040a0',
-  ground: '#e0c068',
-  flying: '#a890f0',
-  psychic: '#f85888',
-  bug: '#a8b820',
-  rock: '#b8a038',
-  ghost: '#705898',
-  dragon: '#7038f8',
-  dark: '#705848',
-  steel: '#b8b8d0',
-  fairy: '#ee99ac',
-};
+import PokemonHeader from '@/components/PokemonPageHeader';
 
 async function getPokemon(id: number) {
   const pokemon = await prisma.pokemon.findUnique({
@@ -42,15 +21,25 @@ async function getPokemon(id: number) {
   return pokemon;
 }
 
+async function getMaxPokemonId() {
+  const maxPokemon = await prisma.pokemon.findFirst({
+    orderBy: { id: 'desc' },
+    select: { id: true },
+  });
+  return maxPokemon?.id || 1025;
+}
+
 export default async function PokemonPage({ params }: { params: { id: string } }) {
-  const pokemon = await getPokemon(parseInt(params.id));
+  const currentId = parseInt(params.id);
+  const pokemon = await getPokemon(currentId);
+  const maxId = await getMaxPokemonId();
 
   if (!pokemon) {
     return <div>Pokemon not found</div>;
   }
 
-  const primaryType = pokemon.types[0]?.name || 'normal';
-  const primaryColor = typeColors[primaryType] || '#8b5cf6';
+  const prevId = currentId > 1 ? currentId - 1 : maxId;
+  const nextId = currentId < maxId ? currentId + 1 : 1;
 
   return (
     <>
@@ -63,20 +52,29 @@ export default async function PokemonPage({ params }: { params: { id: string } }
         </Link>
 
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
+          {/* Header with Navigation */}
           <div className="mb-8">
-            <p className="text-gray-600 text-lg">#{pokemon.id.toString().padStart(3, '0')}</p>
-            <h1 className="text-5xl font-bold capitalize">{pokemon.name}</h1>
-            <div className="flex gap-2 mt-3">
-              {pokemon.types.map((type) => (
-                <span
-                  key={type.id}
-                  className="px-4 py-1.5 rounded-full text-sm font-medium bg-white/80 backdrop-blur capitalize shadow-sm"
-                >
-                  {type.name}
-                </span>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <Link href={`/pokemon/${prevId}`}>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </Button>
+              </Link>
+              
+              <p className="text-gray-600 text-lg">#{pokemon.id.toString().padStart(3, '0')}</p>
+              
+              <Link href={`/pokemon/${nextId}`}>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <ChevronRightIcon className="h-5 w-5" />
+                </Button>
+              </Link>
             </div>
+
+            <PokemonHeader 
+              pokemonId={pokemon.id}
+              pokemonName={pokemon.name}
+              types={pokemon.types}
+            />
           </div>
 
           {/* Main Content Grid */}
@@ -129,12 +127,11 @@ export default async function PokemonPage({ params }: { params: { id: string } }
               <PokedexEntrySelector entries={pokemon.pokedexEntries} />
 
               {/* Stats Card */}
-                <BaseStats 
-                  stats={pokemon.stats} 
-                  pokemonName={pokemon.name}
-                  pokemonId={pokemon.id}
-                />            
-              </div>
+              <BaseStats 
+                stats={pokemon.stats} 
+                pokemonName={pokemon.name}
+              />            
+            </div>
           </div>
         </div>
       </div>

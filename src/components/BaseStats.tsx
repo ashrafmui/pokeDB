@@ -19,7 +19,6 @@ interface Pokemon {
 interface BaseStatsProps {
   stats: Stat[];
   pokemonName: string;
-  pokemonId: number;
 }
 
 const statConfig: Record<string, { label: string; color: string }> = {
@@ -33,7 +32,7 @@ const statConfig: Record<string, { label: string; color: string }> = {
 
 const statOrder = ['hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed'];
 
-export default function BaseStats({ stats, pokemonName, pokemonId }: BaseStatsProps) {
+export default function BaseStats({ stats, pokemonName }: BaseStatsProps) {
   const [view, setView] = useState<'bars' | 'radar'>('bars');
   const [compareMode, setCompareMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +47,12 @@ export default function BaseStats({ stats, pokemonName, pokemonId }: BaseStatsPr
   const total = stats.reduce((sum, stat) => sum + stat.value, 0);
   const maxStat = 255;
 
-  const searchPokemon = async () => {
+  interface PokeAPIStat {
+  stat: { name: string };
+  base_stat: number;
+}
+
+const searchPokemon = async () => {
     if (!searchQuery.trim()) return;
     
     setIsLoading(true);
@@ -64,7 +68,7 @@ export default function BaseStats({ stats, pokemonName, pokemonId }: BaseStatsPr
         id: data.id,
         name: data.name,
         sprite: data.sprites.front_default,
-        stats: data.stats.map((s: any, index: number) => ({
+        stats: data.stats.map((s: PokeAPIStat, index: number) => ({
           id: index,
           name: s.stat.name,
           value: s.base_stat,
