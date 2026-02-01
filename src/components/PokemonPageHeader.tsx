@@ -33,7 +33,6 @@ function TypeIcon({ typeName }: { typeName: string }) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch type data on mount
     const fetchTypeData = async () => {
       setIsLoading(true);
       try {
@@ -52,12 +51,12 @@ function TypeIcon({ typeName }: { typeName: string }) {
 
   return (
     <div className="relative group">
-      <div className="w-8 h-8 bg-white/80 backdrop-blur rounded-full shadow-sm flex items-center justify-center overflow-hidden cursor-help transition-transform hover:scale-110">
+      <div className="w-12 h-12 bg-white/80 backdrop-blur rounded-full shadow-sm flex items-center justify-center overflow-hidden cursor-help transition-transform hover:scale-110">
         <Image
           src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${typeName}.png`}
           alt={typeName}
-          width={32}
-          height={32}
+          width={48}
+          height={48}
           unoptimized
         />
       </div>
@@ -206,7 +205,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
 
 export default function PokemonHeader({ pokemonId, pokemonName, types }: PokemonHeaderProps) {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-4">
       {/* Pokemon Sprite */}
       <div className="relative aspect-square rounded-2xl flex items-center justify-center shrink-0">
         <Image
@@ -218,14 +217,14 @@ export default function PokemonHeader({ pokemonId, pokemonName, types }: Pokemon
         />
       </div>
 
-      {/* Name and Types Container */}
-      <div className="flex flex-col justify-center">
-        <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none">{pokemonName}</h1>
-        <div className="flex gap-2">
-          {types.map((type) => (
-            <TypeIcon key={type.id} typeName={type.name} />
-          ))}
-        </div>
+      {/* Name */}
+      <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none">{pokemonName}</h1>
+
+      {/* Types - now inline */}
+      <div className="flex gap-3 items-center">
+        {types.map((type) => (
+          <TypeIcon key={type.id} typeName={type.name} />
+        ))}
       </div>
     </div>
   );

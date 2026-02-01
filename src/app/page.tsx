@@ -8,6 +8,7 @@ import AnimatedBackground, { TitleDimensions } from '@/components/AnimatedBackgr
 import Title from '@/components/Title';
 import ClickHintModal from '@/components/ClickHintModal';
 import Footer from '@/components/Footer';
+import RandomPokemonButton from '@/components/RandomPokemonButton';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
@@ -40,10 +41,8 @@ export default function Home() {
             <div className="flex items-center justify-center">
               <GenerationButtons activeGeneration={null}/>
             </div>
-            <div className="flex items-center justify-center">
-              <Link href="/spotlight">
-                View Pokemon
-              </Link>
+            <div className="flex items-center justify-center gap-4">
+              <RandomPokemonButton />
             </div>
           </div>
         </div>

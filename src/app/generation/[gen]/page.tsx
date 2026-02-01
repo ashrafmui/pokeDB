@@ -66,9 +66,9 @@ export default async function GenerationPage({ params }: PageProps) {
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 sm:p-8 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col items-center gap-6">
           <Header title={`Gen ${generation}`} />
-          
+
           <PCBox pokemonList={pokemonList} generation={generation} />
-          
+
           <GenerationButtons activeGeneration={generation} />
         </main>
       </div>

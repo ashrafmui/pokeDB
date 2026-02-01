@@ -8,6 +8,8 @@ import SpriteCarousel from '@/components/SpriteCarousel';
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
+import RandomPokemonButton from '@/components/RandomPokemonButton';
+import EvolutionChain from '@/components/EvolutionChain';
 
 async function getPokemon(id: number) {
   const pokemon = await prisma.pokemon.findUnique({
@@ -45,11 +47,14 @@ export default async function PokemonPage({ params }: { params: { id: string } }
     <>
       <BackgroundGradient />
       <div className="relative z-10 min-h-screen p-8">
-        <Link href="/" className="inline-block mb-8">
-          <Button variant="outline" size="icon" className="rounded-full">
-            <ArrowLeftIcon className="h-4 w-4" />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2 mb-8">
+          <Link href="/">
+            <Button variant="outline" size="icon" className="rounded-full">
+              <ArrowLeftIcon className="h-4 w-4" />
+            </Button>
+          </Link>
+          <RandomPokemonButton maxId={maxId} />
+        </div>
 
         <div className="max-w-6xl mx-auto">
           {/* Header with Navigation */}
@@ -94,31 +99,7 @@ export default async function PokemonPage({ params }: { params: { id: string } }
               />
 
               {/* Evolution Chain */}
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-xl font-semibold mb-4">Evolution</h2>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                      <span className="text-2xl">?</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Stage 1</p>
-                  </div>
-                  <div className="text-gray-400">→</div>
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                      <span className="text-2xl">?</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Stage 2</p>
-                  </div>
-                  <div className="text-gray-400">→</div>
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                      <span className="text-2xl">?</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Stage 3</p>
-                  </div>
-                </div>
-              </div>
+              <EvolutionChain pokemonId={pokemon.id} />
             </div>
 
             {/* Right Side - Info and Stats */}

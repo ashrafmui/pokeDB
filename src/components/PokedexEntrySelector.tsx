@@ -54,9 +54,37 @@ export default function PokedexEntrySelector({ entries }: Props) {
   const [selectedVersion, setSelectedVersion] = useState(entries[0]?.version || '');
   const [isAnimating, setIsAnimating] = useState(false);
   const [displayedEntry, setDisplayedEntry] = useState(entries[0]);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const activeColors = getVersionColor(selectedVersion);
+
+  const checkScrollPosition = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setShowLeftFade(scrollLeft > 5);
+    setShowRightFade(scrollLeft < scrollWidth - clientWidth - 5);
+  };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    checkScrollPosition();
+    container.addEventListener('scroll', checkScrollPosition);
+    
+    const resizeObserver = new ResizeObserver(checkScrollPosition);
+    resizeObserver.observe(container);
+
+    return () => {
+      container.removeEventListener('scroll', checkScrollPosition);
+      resizeObserver.disconnect();
+    };
+  }, [entries]);
 
   useEffect(() => {
     const activeButton = buttonRefs.current.get(selectedVersion);
@@ -112,64 +140,79 @@ export default function PokedexEntrySelector({ entries }: Props) {
 
       {/* Version buttons - fixed at bottom */}
       {entries.length > 1 && (
-        <div 
-          className="absolute bottom-0 left-0 right-0 flex gap-2 overflow-x-auto mt-2"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {entries.map((entry) => {
-            const colors = getVersionColor(entry.version);
-            const isSelected = selectedVersion === entry.version;
-            
-            return (
-              <div 
-                key={entry.id} 
-                className="relative flex-shrink-0"
-              >
-                {/* Curved corner connectors for active button */}
-                {isSelected && !isAnimating && (
-                  <>
-                    <div className="absolute -top-[12px] -left-[12px] w-[12px] h-[12px] overflow-hidden" style={{ zIndex: 10 }}>
-                      <div 
-                        className="absolute top-0 left-0 w-[24px] h-[24px] rounded-full"
-                        style={{ 
-                          boxShadow: `12px 12px 0 0 ${getComputedBgColor(colors.bg)}`,
-                        }}
-                      />
-                    </div>
-                    <div className="absolute -top-[12px] -right-[12px] w-[12px] h-[12px] overflow-hidden" style={{ zIndex: 10 }}>
-                      <div 
-                        className="absolute top-0 right-0 w-[24px] h-[24px] rounded-full"
-                        style={{ 
-                          boxShadow: `-12px 12px 0 0 ${getComputedBgColor(colors.bg)}`,
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-                
-                <button
-                  ref={(el) => {
-                    if (el) {
-                      buttonRefs.current.set(entry.version, el);
-                    }
-                  }}
-                  onClick={() => handleVersionChange(entry.version)}
-                  className={`relative px-4 py-2 text-sm font-pocket-monk capitalize whitespace-nowrap transition-all duration-150 ease-out
-                    ${isSelected 
-                      ? `${colors.bg} shadow-lg text-white rounded-b-xl rounded-t-none` 
-                      : `bg-white border-2 border-t-0 rounded-t-none rounded-b-xl ${colors.border} ${colors.text} ${colors.hoverBg} opacity-50 hover:opacity-80`
-                    }`}
-                  style={{
-                    paddingTop: isSelected ? '40px' : '8px',
-                    marginTop: isSelected ? '-40px' : '0px',
-                    transition: 'all 150ms ease-out',
-                  }}
+        <div className="absolute bottom-0 left-0 right-0">
+          {/* Left fade indicator */}
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-20 pointer-events-none transition-opacity duration-200"
+            style={{ opacity: showLeftFade ? 1 : 0 }}
+          />
+          
+          {/* Right fade indicator */}
+          <div 
+            className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-20 pointer-events-none transition-opacity duration-200"
+            style={{ opacity: showRightFade ? 1 : 0 }}
+          />
+
+          <div 
+            ref={scrollContainerRef}
+            className="flex gap-2 overflow-x-auto"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {entries.map((entry) => {
+              const colors = getVersionColor(entry.version);
+              const isSelected = selectedVersion === entry.version;
+              
+              return (
+                <div 
+                  key={entry.id} 
+                  className="relative flex-shrink-0"
                 >
-                  {entry.version.replace('-', ' ')}
-                </button>
-              </div>
-            );
-          })}
+                  {/* Curved corner connectors for active button */}
+                  {isSelected && !isAnimating && (
+                    <>
+                      <div className="absolute -top-[12px] -left-[12px] w-[12px] h-[12px] overflow-hidden" style={{ zIndex: 10 }}>
+                        <div 
+                          className="absolute top-0 left-0 w-[24px] h-[24px] rounded-full"
+                          style={{ 
+                            boxShadow: `12px 12px 0 0 ${getComputedBgColor(colors.bg)}`,
+                          }}
+                        />
+                      </div>
+                      <div className="absolute -top-[12px] -right-[12px] w-[12px] h-[12px] overflow-hidden" style={{ zIndex: 10 }}>
+                        <div 
+                          className="absolute top-0 right-0 w-[24px] h-[24px] rounded-full"
+                          style={{ 
+                            boxShadow: `-12px 12px 0 0 ${getComputedBgColor(colors.bg)}`,
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <button
+                    ref={(el) => {
+                      if (el) {
+                        buttonRefs.current.set(entry.version, el);
+                      }
+                    }}
+                    onClick={() => handleVersionChange(entry.version)}
+                    className={`relative px-4 py-2 text-sm font-pocket-monk capitalize whitespace-nowrap transition-all duration-150 ease-out
+                      ${isSelected 
+                        ? `${colors.bg} shadow-lg text-white rounded-b-xl rounded-t-none` 
+                        : `bg-white border-2 border-t-0 rounded-t-none rounded-b-xl ${colors.border} ${colors.text} ${colors.hoverBg} opacity-50 hover:opacity-80`
+                      }`}
+                    style={{
+                      paddingTop: isSelected ? '40px' : '8px',
+                      marginTop: isSelected ? '-40px' : '0px',
+                      transition: 'all 150ms ease-out',
+                    }}
+                  >
+                    {entry.version.replace('-', ' ')}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
