@@ -1,13 +1,17 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, ShuffleIcon } from '@radix-ui/react-icons';
+import RandomPokemonButton from '@/components/RandomPokemonButton';
 
 interface Type {
   id: number;
   name: string;
-  slot?: number;  // Made optional
-  [key: string]: unknown;  // Allow additional properties from Prisma
+  slot?: number;
+  [key: string]: unknown;
 }
 
 interface DamageRelations {
@@ -27,6 +31,9 @@ interface PokemonHeaderProps {
   pokemonId: number;
   pokemonName: string;
   types: Type[];
+  prevId: number;
+  nextId: number;
+  maxId: number;
 }
 
 function TypeIcon({ typeName }: { typeName: string }) {
@@ -204,29 +211,61 @@ function TypeIcon({ typeName }: { typeName: string }) {
   );
 }
 
-export default function PokemonHeader({ pokemonId, pokemonName, types }: PokemonHeaderProps) {
+export default function PokemonHeader({ pokemonId, pokemonName, types, prevId, nextId, maxId }: PokemonHeaderProps) {
   return (
-    <div className="flex items-center gap-4">
-      {/* Pokemon Sprite */}
-      <div className="relative aspect-square rounded-2xl flex items-center justify-center shrink-0">
-        <Image
-          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`}
-          alt={pokemonName}
-          width={120}
-          height={120}
-          unoptimized
-        />
+    <div className="flex items-center justify-between">
+      {/* Left - Back & Random */}
+      <div className="flex items-center gap-2">
+        <Link href="/">
+          <Button variant="outline" size="icon" className="rounded-full">
+            <ArrowLeftIcon className="h-4 w-4" />
+          </Button>
+        </Link>
+        <RandomPokemonButton maxId={maxId} />
+        <Link href={`/pokemon/${prevId}`}>
+          <Button variant="outline" size="icon" className="rounded-full">
+            <ChevronLeftIcon className="h-5 w-5" />
+          </Button>
+        </Link>
       </div>
 
-      {/* Name */}
-      <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none">{pokemonName}</h1>
+      {/* Center Content */}
+      <div className="flex items-center gap-4">
+        {/* Pokemon Number */}
+        <span className="text-muted-foreground text-lg font-medium">
+          #{pokemonId.toString().padStart(3, '0')}
+        </span>
 
-      {/* Types - now inline */}
-      <div className="flex gap-3 items-center">
-        {types.map((type) => (
-          <TypeIcon key={type.id} typeName={type.name} />
-        ))}
+        {/* Pokemon Sprite */}
+        <div className="relative aspect-square rounded-2xl flex items-center justify-center shrink-0">
+          <Image
+            src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`}
+            alt={pokemonName}
+            width={120}
+            height={120}
+            unoptimized
+          />
+        </div>
+
+        {/* Name */}
+        <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none">
+          {pokemonName}
+        </h1>
+
+        {/* Types */}
+        <div className="flex gap-3 items-center">
+          {types.map((type) => (
+            <TypeIcon key={type.id} typeName={type.name} />
+          ))}
+        </div>
       </div>
+
+      {/* Right Navigation */}
+      <Link href={`/pokemon/${nextId}`}>
+        <Button variant="outline" size="icon" className="rounded-full">
+          <ChevronRightIcon className="h-5 w-5" />
+        </Button>
+      </Link>
     </div>
   );
 }

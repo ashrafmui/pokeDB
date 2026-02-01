@@ -1,14 +1,11 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import BackgroundGradient from '@/components/BackgroundGradient';
-import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
-import { Button } from '@/components/ui/button';
 import PokedexEntrySelector from '@/components/PokedexEntrySelector';
 import SpriteCarousel from '@/components/SpriteCarousel';
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
-import RandomPokemonButton from '@/components/RandomPokemonButton';
 import EvolutionChain from '@/components/EvolutionChain';
 import PokemonFormVariants from '@/components/PokemonFormVariants';
 import PokemonLocations from '@/components/PokemonLocations';
@@ -55,38 +52,16 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
     <>
       <BackgroundGradient />
       <div className="relative z-10 min-h-screen p-8">
-        <div className="flex items-center gap-2 mb-8">
-          <Link href="/">
-            <Button variant="outline" size="icon" className="rounded-full">
-              <ArrowLeftIcon className="h-4 w-4" />
-            </Button>
-          </Link>
-          <RandomPokemonButton maxId={maxId} />
-        </div>
-
         <div className="max-w-6xl mx-auto">
-          {/* Header with Navigation */}
+          {/* Header with Navigation, Sprite, Name, Types - All in one row */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <Link href={`/pokemon/${prevId}`}>
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <ChevronLeftIcon className="h-5 w-5" />
-                </Button>
-              </Link>
-              
-              <p className="text-gray-600 text-lg">#{pokemon.id.toString().padStart(3, '0')}</p>
-              
-              <Link href={`/pokemon/${nextId}`}>
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <ChevronRightIcon className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-
             <PokemonHeader 
               pokemonId={pokemon.id}
               pokemonName={pokemon.name}
               types={pokemon.types}
+              prevId={prevId}
+              nextId={nextId}
+              maxId={maxId}
             />
           </div>
 
