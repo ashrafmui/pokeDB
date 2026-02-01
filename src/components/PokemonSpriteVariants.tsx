@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SpriteItem {
   key: string;
@@ -14,7 +15,6 @@ interface Props {
 }
 
 export default function PokemonSpriteVariants({ pokemonId, pokemonName }: Props) {
-  // Small sprites (96x96)
   const spriteItems: SpriteItem[] = [
     { 
       key: 'front', 
@@ -53,26 +53,32 @@ export default function PokemonSpriteVariants({ pokemonId, pokemonName }: Props)
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <h2 className="text-xl font-semibold mb-4">Sprites</h2>
-      <div className="grid grid-cols-4 gap-4">
-        {availableSprites.map((sprite) => (
-          <div key={sprite.key} className="flex flex-col items-center">
-            <div className="w-20 h-20 flex items-center justify-center bg-gray-50 rounded-lg">
-              <img
-                src={sprite.src}
-                alt={`${pokemonName} - ${sprite.label}`}
-                width={96}
-                height={96}
-                className="object-contain"
-                style={{ imageRendering: 'pixelated' }}
-                onError={() => handleImageError(sprite.key)}
-              />
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold">Sprites</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-4 gap-4">
+          {availableSprites.map((sprite) => (
+            <div key={sprite.key} className="flex flex-col items-center">
+              <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md">
+                <img
+                  src={sprite.src}
+                  alt={`${pokemonName} - ${sprite.label}`}
+                  width={96}
+                  height={96}
+                  className="object-contain"
+                  style={{ imageRendering: 'pixelated' }}
+                  onError={() => handleImageError(sprite.key)}
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                {sprite.label}
+              </p>
             </div>
-            <p className="mt-2 text-xs text-gray-500 text-center">{sprite.label}</p>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

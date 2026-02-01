@@ -1,14 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getVersionColor } from '@/lib/versionColors';
+import { 
+  GameLocation, 
+  formatLocationName, 
+  formatMethodName, 
+  getLocationType,
+  getComputedBgColor 
+} from '@/lib/locationUtils';
+import LocationListView from './LocationListView';
+import LocationMapView from './LocationMapView';
 
 interface EncounterDetail {
-  chance: number;
-  max_level: number;
   min_level: number;
+  max_level: number;
   method: { name: string };
-  condition_values: { name: string }[];
 }
 
 interface VersionDetail {
@@ -18,103 +28,64 @@ interface VersionDetail {
 }
 
 interface LocationArea {
-  location_area: { name: string; url: string };
+  location_area: { name: string };
   version_details: VersionDetail[];
-}
-
-interface GameLocation {
-  game: string;
-  locations: {
-    name: string;
-    methods: string[];
-    levels: string;
-    chance: number;
-  }[];
 }
 
 interface PokemonLocationsProps {
   pokemonId: number;
 }
 
-function formatLocationName(name: string): string {
-  return name
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-    .replace(/Area$/, '')
-    .replace(/^\s+|\s+$/g, '');
-}
-
-function formatMethodName(method: string): string {
-  const methodMap: Record<string, string> = {
-    'walk': 'Walking',
-    'old-rod': 'Old Rod',
-    'good-rod': 'Good Rod',
-    'super-rod': 'Super Rod',
-    'surf': 'Surfing',
-    'rock-smash': 'Rock Smash',
-    'headbutt': 'Headbutt',
-    'dark-grass': 'Dark Grass',
-    'grass-spots': 'Shaking Grass',
-    'cave-spots': 'Dust Clouds',
-    'bridge-spots': 'Bridge Shadows',
-    'super-rod-spots': 'Fishing Spots',
-    'surf-spots': 'Rippling Water',
-    'yellow-flowers': 'Yellow Flowers',
-    'purple-flowers': 'Purple Flowers',
-    'red-flowers': 'Red Flowers',
-    'rough-terrain': 'Rough Terrain',
-    'gift': 'Gift',
-    'gift-egg': 'Gift Egg',
-    'only-one': 'Static Encounter',
-    'pokeflute': 'Poké Flute',
-    'headbutt-low': 'Headbutt (Low)',
-    'headbutt-normal': 'Headbutt (Normal)',
-    'headbutt-high': 'Headbutt (High)',
-    'squirt-bottle': 'Squirt Bottle',
-    'wailmer-pail': 'Wailmer Pail',
-    'seaweed': 'Seaweed',
-    'roaming-grass': 'Roaming (Grass)',
-    'roaming-water': 'Roaming (Water)',
-  };
-  return methodMap[method] || method.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
-
-function getComputedBgColor(bgClass: string): string {
-  const colorMap: Record<string, string> = {
-    'bg-red-500': '#ef4444',
-    'bg-red-600': '#dc2626',
-    'bg-red-700': '#b91c1c',
-    'bg-blue-500': '#3b82f6',
-    'bg-blue-600': '#2563eb',
-    'bg-blue-700': '#1d4ed8',
-    'bg-yellow-400': '#facc15',
-    'bg-yellow-500': '#eab308',
-    'bg-yellow-600': '#ca8a04',
-    'bg-gray-400': '#9ca3af',
-    'bg-gray-500': '#6b7280',
-    'bg-gray-800': '#1f2937',
-    'bg-cyan-400': '#22d3ee',
-    'bg-cyan-500': '#06b6d4',
-    'bg-emerald-500': '#10b981',
-    'bg-orange-500': '#f97316',
-    'bg-green-500': '#22c55e',
-    'bg-pink-400': '#f472b6',
-    'bg-slate-400': '#94a3b8',
-    'bg-purple-600': '#9333ea',
-    'bg-purple-700': '#7e22ce',
-    'bg-amber-600': '#d97706',
-    'bg-indigo-600': '#4f46e5',
-    'bg-violet-600': '#7c3aed',
-  };
-  return colorMap[bgClass] || '#6b7280';
-}
+type ViewMode = 'list' | 'map';
 
 export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
   const [gameLocations, setGameLocations] = useState<GameLocation[]>([]);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const checkScrollPosition = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setShowLeftFade(scrollLeft > 5);
+    setShowRightFade(scrollLeft < scrollWidth - clientWidth - 5);
+  };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    checkScrollPosition();
+    container.addEventListener('scroll', checkScrollPosition);
+    
+    const resizeObserver = new ResizeObserver(checkScrollPosition);
+    resizeObserver.observe(container);
+
+    return () => {
+      container.removeEventListener('scroll', checkScrollPosition);
+      resizeObserver.disconnect();
+    };
+  }, [gameLocations]);
+
+  useEffect(() => {
+    if (selectedGame) {
+      const activeButton = buttonRefs.current.get(selectedGame);
+      if (activeButton) {
+        activeButton.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }
+    }
+  }, [selectedGame]);
 
   useEffect(() => {
     async function fetchLocations() {
@@ -126,8 +97,6 @@ export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
         if (!res.ok) throw new Error('Failed to fetch encounters');
         
         const data: LocationArea[] = await res.json();
-
-        // Group by game version
         const gameMap = new Map<string, GameLocation>();
 
         for (const area of data) {
@@ -142,12 +111,14 @@ export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
             const minLevel = Math.min(...versionDetail.encounter_details.map(d => d.min_level));
             const maxLevel = Math.max(...versionDetail.encounter_details.map(d => d.max_level));
             const levels = minLevel === maxLevel ? `Lv. ${minLevel}` : `Lv. ${minLevel}-${maxLevel}`;
+            const locationName = formatLocationName(area.location_area.name);
 
             gameMap.get(gameName)!.locations.push({
-              name: formatLocationName(area.location_area.name),
+              name: locationName,
               methods,
               levels,
               chance: versionDetail.max_chance,
+              locationType: getLocationType(locationName),
             });
           }
         }
@@ -171,92 +142,111 @@ export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-xl font-semibold mb-4">Wild Encounters</h2>
-        <div className="flex items-center justify-center h-24">
-          <p className="text-gray-500">Loading locations...</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Wild Encounters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error || gameLocations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-xl font-semibold mb-4">Wild Encounters</h2>
-        <div className="flex items-center justify-center h-24">
-          <p className="text-gray-500 italic">This Pokémon cannot be found in the wild</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Wild Encounters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center italic">
+            This Pokémon cannot be found in the wild
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   const selectedGameData = gameLocations.find(g => g.game === selectedGame);
-  const colors = selectedGame ? getVersionColor(selectedGame) : null;
+  const gameColors = selectedGame ? getVersionColor(selectedGame) : null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <h2 className="text-xl font-semibold mb-4">Wild Encounters</h2>
-
-      {/* Game Selector */}
-      <div 
-        className="font-pocket-monk flex gap-2 overflow-x-auto pb-3 mb-4"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {gameLocations.map((game) => {
-          const gameColors = getVersionColor(game.game);
-          const isSelected = selectedGame === game.game;
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold">Wild Encounters</CardTitle>
           
-          return (
-            <button
-              key={game.game}
-              onClick={() => setSelectedGame(game.game)}
-              className={`px-3 py-1.5 text-sm font-medium capitalize whitespace-nowrap rounded-full transition-all ${
-                isSelected
-                  ? 'text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-              style={isSelected ? { backgroundColor: getComputedBgColor(gameColors.bg) } : {}}
-            >
-              {game.game.replace(/-/g, ' ')}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Location List */}
-      {selectedGameData && (
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {selectedGameData.locations.map((location, index) => (
-            <div 
-              key={index}
-              className="p-3 rounded-xl bg-gray-50 border border-gray-100"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-800">{location.name}</h3>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {location.methods.map((method, i) => (
-                      <span 
-                        key={i}
-                        className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600"
-                      >
-                        {method}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-medium text-gray-700">{location.levels}</p>
-                  {location.chance > 0 && (
-                    <p className="text-xs text-gray-500">{location.chance}% chance</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+            <TabsList className="h-8">
+              <TabsTrigger value="list" className="text-xs px-3">List</TabsTrigger>
+              <TabsTrigger value="map" className="text-xs px-3">Map</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
-      )}
-    </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Game Selector */}
+        <div className="relative">
+          {/* Left fade indicator */}
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-card to-transparent z-20 pointer-events-none transition-opacity duration-200"
+            style={{ opacity: showLeftFade ? 1 : 0 }}
+          />
+          
+          {/* Right fade indicator */}
+          <div 
+            className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card to-transparent z-20 pointer-events-none transition-opacity duration-200"
+            style={{ opacity: showRightFade ? 1 : 0 }}
+          />
+
+          <div 
+            ref={scrollContainerRef}
+            className="flex gap-2 overflow-x-auto pb-3"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {gameLocations.map((game) => {
+              const colors = getVersionColor(game.game);
+              const isSelected = selectedGame === game.game;
+              
+              return (
+                <button
+                  key={game.game}
+                  ref={(el) => {
+                    if (el) {
+                      buttonRefs.current.set(game.game, el);
+                    }
+                  }}
+                  onClick={() => setSelectedGame(game.game)}
+                  className={`px-3 py-1.5 text-sm font-medium capitalize whitespace-nowrap rounded-full transition-all ${
+                    isSelected 
+                      ? 'text-white shadow-md' 
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                  style={isSelected ? { backgroundColor: getComputedBgColor(colors.bg) } : {}}
+                >
+                  {game.game.replace(/-/g, ' ')}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {selectedGameData && viewMode === 'list' && (
+          <LocationListView locations={selectedGameData.locations} />
+        )}
+
+        {selectedGameData && viewMode === 'map' && (
+          <LocationMapView 
+            locations={selectedGameData.locations} 
+            gameColorBg={gameColors?.bg || null} 
+          />
+        )}
+      </CardContent>
+    </Card>
   );
 }

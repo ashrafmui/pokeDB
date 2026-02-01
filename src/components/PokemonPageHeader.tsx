@@ -6,7 +6,8 @@ import { useState, useEffect } from 'react';
 interface Type {
   id: number;
   name: string;
-  slot: number;
+  slot?: number;  // Made optional
+  [key: string]: unknown;  // Allow additional properties from Prisma
 }
 
 interface DamageRelations {

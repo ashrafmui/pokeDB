@@ -3,6 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils';
 
 interface EvolutionDetail {
   min_level: number | null;
@@ -83,7 +87,6 @@ async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution
     for (const link of links) {
       const speciesId = extractIdFromUrl(link.species.url);
       
-      // Fetch Pokemon data to get the correct ID (species ID might differ from Pokemon ID)
       try {
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${link.species.name}`);
         const data = await res.json();
@@ -126,17 +129,14 @@ export default function EvolutionChain({ pokemonId }: EvolutionChainProps) {
       setError(null);
       
       try {
-        // First get the species to find the evolution chain URL
         const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`);
         if (!speciesRes.ok) throw new Error('Failed to fetch species');
         const speciesData = await speciesRes.json();
         
-        // Then fetch the evolution chain
         const chainRes = await fetch(speciesData.evolution_chain.url);
         if (!chainRes.ok) throw new Error('Failed to fetch evolution chain');
         const chainData: EvolutionChainData = await chainRes.json();
         
-        // Flatten the chain into stages
         const stages = await flattenEvolutionChain(chainData.chain);
         setEvolutionStages(stages);
       } catch (err) {
@@ -152,82 +152,103 @@ export default function EvolutionChain({ pokemonId }: EvolutionChainProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-xl font-semibold mb-4">Evolution</h2>
-        <div className="flex items-center justify-center h-24">
-          <p className="text-gray-500">Loading evolution chain...</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center gap-4">
+            <Skeleton className="w-20 h-20 rounded-full" />
+            <Skeleton className="w-6 h-6" />
+            <Skeleton className="w-20 h-20 rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error || evolutionStages.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-xl font-semibold mb-4">Evolution</h2>
-        <div className="flex items-center justify-center h-24">
-          <p className="text-gray-500 italic">No evolution data available</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center italic">
+            No evolution data available
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  // Check if this Pokemon doesn't evolve (single stage, single Pokemon)
   if (evolutionStages.length === 1 && evolutionStages[0].length === 1) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-xl font-semibold mb-4">Evolution</h2>
-        <div className="flex items-center justify-center h-24">
-          <p className="text-gray-500 italic">This Pokémon does not evolve</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center italic">
+            This Pokémon does not evolve
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <h2 className="text-xl font-semibold mb-4">Evolution</h2>
-      <div className="flex items-center justify-center gap-2 flex-wrap">
-        {evolutionStages.map((stage, stageIndex) => (
-          <div key={stageIndex} className="flex items-center gap-2">
-            {/* Arrow before stage (except first) */}
-            {stageIndex > 0 && (
-              <div className="text-gray-400 text-xl">→</div>
-            )}
-            
-            {/* Pokemon in this stage */}
-            <div className="flex flex-col gap-2">
-              {stage.map((pokemon) => (
-                <Link 
-                  key={pokemon.id} 
-                  href={`/pokemon/${pokemon.id}`}
-                  className="group"
-                >
-                  <div className="text-center">
-                    <div className={`w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-1 transition-all group-hover:bg-gray-200 group-hover:scale-110 ${pokemon.id === pokemonId ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}>
-                      <Image
-                        src={pokemon.sprite}
-                        alt={pokemon.name}
-                        width={64}
-                        height={64}
-                        className="object-contain"
-                        style={{ imageRendering: 'pixelated' }}
-                        unoptimized
-                      />
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {evolutionStages.map((stage, stageIndex) => (
+            <div key={stageIndex} className="flex items-center gap-2">
+              {stageIndex > 0 && (
+                <ArrowRightIcon className="h-5 w-5 text-muted-foreground" />
+              )}
+              
+              <div className="flex flex-col gap-2">
+                {stage.map((pokemon) => (
+                  <Link 
+                    key={pokemon.id} 
+                    href={`/pokemon/${pokemon.id}`}
+                    className="group"
+                  >
+                    <div className="text-center">
+                      <div className={cn(
+                        "w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-1",
+                        "transition-all group-hover:bg-muted/80 group-hover:scale-110",
+                        pokemon.id === pokemonId && "ring-2 ring-primary ring-offset-2"
+                      )}>
+                        <Image
+                          src={pokemon.sprite}
+                          alt={pokemon.name}
+                          width={64}
+                          height={64}
+                          className="object-contain"
+                          style={{ imageRendering: 'pixelated' }}
+                          unoptimized
+                        />
+                      </div>
+                      {pokemon.trigger && (
+                        <p className="text-[10px] text-muted-foreground capitalize mb-1">
+                          {pokemon.trigger}
+                        </p>
+                      )}
+                      <p className="text-sm text-foreground capitalize group-hover:text-primary transition-colors">
+                        {pokemon.name.replace(/-/g, ' ')}
+                      </p>
                     </div>
-                    {pokemon.trigger && (
-                      <p className="text-[10px] text-gray-500 capitalize mb-1">{pokemon.trigger}</p>
-                    )}
-                    <p className="text-sm text-gray-700 capitalize group-hover:text-blue-600 transition-colors">
-                      {pokemon.name.replace(/-/g, ' ')}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

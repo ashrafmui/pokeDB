@@ -12,6 +12,11 @@ import RandomPokemonButton from '@/components/RandomPokemonButton';
 import EvolutionChain from '@/components/EvolutionChain';
 import PokemonFormVariants from '@/components/PokemonFormVariants';
 import PokemonLocations from '@/components/PokemonLocations';
+import PokemonMoves from '@/components/PokemonMoves';
+import PokemonAbilities from '@/components/PokemonAbilities';
+import TypeEffectiveness from '@/components/TypeEffectiveness';
+import PokemonSpeciesCard from '@/components/PokemonSpeciesCard';
+import BreedingInfo from '@/components/BreedingInfo';
 
 async function getPokemon(id: number) {
   const pokemon = await prisma.pokemon.findUnique({
@@ -33,8 +38,9 @@ async function getMaxPokemonId() {
   return maxPokemon?.id || 1025;
 }
 
-export default async function PokemonPage({ params }: { params: { id: string } }) {
-  const currentId = parseInt(params.id);
+export default async function PokemonPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const currentId = parseInt(id);
   const pokemon = await getPokemon(currentId);
   const maxId = await getMaxPokemonId();
 
@@ -86,44 +92,49 @@ export default async function PokemonPage({ params }: { params: { id: string } }
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Side - Sprites and Evolution */}
+            {/* Left Side - Sprites, Evolution, Breeding, Locations */}
             <div className="space-y-6">
-              {/* High-res Sprite Carousel */}
               <SpriteCarousel
                 pokemonId={pokemon.id}
                 pokemonName={pokemon.name}
               />
 
-              {/* Small Sprite Variants */}
               <PokemonSpriteVariants
                 pokemonId={pokemon.id}
                 pokemonName={pokemon.name}
               />
 
-              {/* Evolution Chain */}
               <EvolutionChain pokemonId={pokemon.id} />
 
-              {/* Mega/Gigantamax Forms */}
               <PokemonFormVariants 
                 pokemonId={pokemon.id} 
                 pokemonName={pokemon.name} 
               />
+
+              <BreedingInfo pokemonId={pokemon.id} />
+
+              <PokemonLocations pokemonId={pokemon.id} />
             </div>
 
             {/* Right Side - Info and Stats */}
             <div className="space-y-6">
-              {/* Pokédex Entry with Version Selector */}
               <PokedexEntrySelector entries={pokemon.pokedexEntries} />
 
-              {/* Stats Card */}
+              <PokemonAbilities pokemonId={pokemon.id} />
+
+              <PokemonSpeciesCard pokemonId={pokemon.id} />
+
+              <TypeEffectiveness types={pokemon.types} />
+
               <BaseStats 
                 stats={pokemon.stats} 
                 pokemonName={pokemon.name}
               />
-
-              {/* Wild Encounter Locations */}
-              <PokemonLocations pokemonId={pokemon.id} />            
             </div>
+          </div>
+
+          <div className="mt-8">
+            <PokemonMoves pokemonId={pokemon.id} />
           </div>
         </div>
       </div>

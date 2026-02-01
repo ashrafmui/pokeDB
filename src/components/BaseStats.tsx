@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Cross2Icon } from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils';
 
 interface Stat {
   id: number;
@@ -48,11 +55,11 @@ export default function BaseStats({ stats, pokemonName }: BaseStatsProps) {
   const maxStat = 255;
 
   interface PokeAPIStat {
-  stat: { name: string };
-  base_stat: number;
-}
+    stat: { name: string };
+    base_stat: number;
+  }
 
-const searchPokemon = async () => {
+  const searchPokemon = async () => {
     if (!searchQuery.trim()) return;
     
     setIsLoading(true);
@@ -105,184 +112,183 @@ const searchPokemon = async () => {
     : 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Base Stats</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCompareMode(!compareMode)}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-              compareMode 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Compare
-          </button>
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setView('bars')}
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                view === 'bars' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Bars
-            </button>
-            <button
-              onClick={() => setView('radar')}
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                view === 'radar' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Radar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Compare Search */}
-      {compareMode && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-xl">
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold">Base Stats</CardTitle>
           <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Enter Pokémon name or number..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={searchPokemon}
-              disabled={isLoading}
-              className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+            <Button
+              variant={compareMode ? "default" : "secondary"}
+              size="sm"
+              onClick={() => setCompareMode(!compareMode)}
             >
-              {isLoading ? '...' : 'Search'}
-            </button>
+              Compare
+            </Button>
+            <Tabs value={view} onValueChange={(v) => setView(v as 'bars' | 'radar')}>
+              <TabsList className="h-8">
+                <TabsTrigger value="bars" className="text-xs px-3">Bars</TabsTrigger>
+                <TabsTrigger value="radar" className="text-xs px-3">Radar</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-          
-          {comparePokemon && (
-            <div className="flex items-center justify-between mt-3 p-2 bg-white rounded-lg">
-              <div className="flex items-center gap-2">
-                <Image
-                  src={comparePokemon.sprite}
-                  alt={comparePokemon.name}
-                  width={40}
-                  height={40}
-                  unoptimized
-                />
-                <span className="font-medium capitalize">{comparePokemon.name}</span>
-                <span className="text-gray-400 text-sm">#{comparePokemon.id}</span>
-              </div>
-              <button
-                onClick={clearComparison}
-                className="text-gray-400 hover:text-gray-600 text-lg px-2"
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Compare Search */}
+        {compareMode && (
+          <div className="p-3 bg-muted/50 rounded-md space-y-3">
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Enter Pokémon name or number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 h-9"
+              />
+              <Button
+                onClick={searchPokemon}
+                disabled={isLoading}
+                size="sm"
               >
-                ×
-              </button>
+                {isLoading ? '...' : 'Search'}
+              </Button>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Pokemon Labels */}
-      {compareMode && comparePokemon && (
-        <div className="flex justify-end gap-4 mb-2 text-sm">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="capitalize">{pokemonName}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-purple-500" />
-            <span className="capitalize">{comparePokemon.name}</span>
-          </div>
-        </div>
-      )}
-
-      {view === 'bars' ? (
-        <div className="space-y-3">
-          {sortedStats.map((stat, index) => {
-            const config = statConfig[stat.name] || { label: stat.name, color: '#9ca3af' };
-            const compareStat = compareStats?.[index];
-            const diff = compareStat ? stat.value - compareStat.value : 0;
+            {error && <p className="text-destructive text-sm">{error}</p>}
             
-            return (
-              <div key={stat.id} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">
-                    {config.label}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-900">{stat.value}</span>
+            {comparePokemon && (
+              <div className="flex items-center justify-between p-2 bg-background rounded-md border">
+                <div className="flex items-center gap-2">
+                  <Image
+                    src={comparePokemon.sprite}
+                    alt={comparePokemon.name}
+                    width={40}
+                    height={40}
+                    unoptimized
+                  />
+                  <span className="font-medium capitalize">{comparePokemon.name}</span>
+                  <span className="text-muted-foreground text-sm">#{comparePokemon.id}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={clearComparison}
+                >
+                  <Cross2Icon className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Pokemon Labels */}
+        {compareMode && comparePokemon && (
+          <div className="flex justify-end gap-4 text-sm">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className="capitalize">{pokemonName}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-purple-500" />
+              <span className="capitalize">{comparePokemon.name}</span>
+            </div>
+          </div>
+        )}
+
+        {view === 'bars' ? (
+          <div className="space-y-3">
+            {sortedStats.map((stat, index) => {
+              const config = statConfig[stat.name] || { label: stat.name, color: '#9ca3af' };
+              const compareStat = compareStats?.[index];
+              const diff = compareStat ? stat.value - compareStat.value : 0;
+              
+              return (
+                <div key={stat.id} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {config.label}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-foreground">{stat.value}</span>
+                      {compareMode && compareStat && (
+                        <>
+                          <span className="text-sm text-muted-foreground">vs</span>
+                          <span className="text-sm font-bold text-purple-600">{compareStat.value}</span>
+                          <Badge 
+                            variant="secondary"
+                            className={cn(
+                              "text-xs font-medium",
+                              diff > 0 && "bg-green-100 text-green-600",
+                              diff < 0 && "bg-red-100 text-red-600",
+                              diff === 0 && "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {diff > 0 ? '+' : ''}{diff}
+                          </Badge>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="relative w-full bg-muted rounded-full h-2.5">
+                    <div
+                      className="absolute h-2.5 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${Math.min(stat.value / maxStat * 100, 100)}%`,
+                        backgroundColor: config.color,
+                      }}
+                    />
                     {compareMode && compareStat && (
-                      <>
-                        <span className="text-sm text-gray-400">vs</span>
-                        <span className="text-sm font-bold text-purple-600">{compareStat.value}</span>
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                          diff > 0 ? 'bg-green-100 text-green-600' : 
-                          diff < 0 ? 'bg-red-100 text-red-600' : 
-                          'bg-gray-100 text-gray-500'
-                        }`}>
-                          {diff > 0 ? '+' : ''}{diff}
-                        </span>
-                      </>
+                      <div
+                        className="absolute h-2.5 rounded-full transition-all duration-500 opacity-50"
+                        style={{ 
+                          width: `${Math.min(compareStat.value / maxStat * 100, 100)}%`,
+                          backgroundColor: '#8b5cf6',
+                        }}
+                      />
                     )}
                   </div>
                 </div>
-                <div className="relative w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="absolute h-2.5 rounded-full transition-all duration-500"
-                    style={{ 
-                      width: `${Math.min(stat.value / maxStat * 100, 100)}%`,
-                      backgroundColor: config.color,
-                    }}
-                  />
-                  {compareMode && compareStat && (
-                    <div
-                      className="absolute h-2.5 rounded-full transition-all duration-500 opacity-50"
-                      style={{ 
-                        width: `${Math.min(compareStat.value / maxStat * 100, 100)}%`,
-                        backgroundColor: '#8b5cf6',
-                      }}
-                    />
+              );
+            })}
+            
+            <div className="pt-3 mt-3 border-t border-border">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-foreground">Total</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-foreground">{total}</span>
+                  {compareMode && comparePokemon && (
+                    <>
+                      <span className="text-sm text-muted-foreground">vs</span>
+                      <span className="text-lg font-bold text-purple-600">{compareTotal}</span>
+                      <Badge 
+                        variant="secondary"
+                        className={cn(
+                          "text-xs font-medium",
+                          total - compareTotal > 0 && "bg-green-100 text-green-600",
+                          total - compareTotal < 0 && "bg-red-100 text-red-600",
+                          total - compareTotal === 0 && "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {total - compareTotal > 0 ? '+' : ''}{total - compareTotal}
+                      </Badge>
+                    </>
                   )}
                 </div>
               </div>
-            );
-          })}
-          
-          <div className="pt-3 mt-3 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-700">Total</span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-gray-800">{total}</span>
-                {compareMode && comparePokemon && (
-                  <>
-                    <span className="text-sm text-gray-400">vs</span>
-                    <span className="text-lg font-bold text-purple-600">{compareTotal}</span>
-                    <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                      total - compareTotal > 0 ? 'bg-green-100 text-green-600' : 
-                      total - compareTotal < 0 ? 'bg-red-100 text-red-600' : 
-                      'bg-gray-100 text-gray-500'
-                    }`}>
-                      {total - compareTotal > 0 ? '+' : ''}{total - compareTotal}
-                    </span>
-                  </>
-                )}
-              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <RadarChart 
-          stats={sortedStats} 
-          compareStats={compareMode ? compareStats : null}
-          pokemonName={pokemonName}
-          comparePokemonName={comparePokemon?.name}
-        />
-      )}
-    </div>
+        ) : (
+          <RadarChart 
+            stats={sortedStats} 
+            compareStats={compareMode ? compareStats : null}
+            pokemonName={pokemonName}
+            comparePokemonName={comparePokemon?.name}
+          />
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -339,7 +345,7 @@ function RadarChart({ stats, compareStats, pokemonName, comparePokemonName }: Ra
               key={level}
               points={levelPolygon}
               fill="none"
-              stroke="#e5e7eb"
+              className="stroke-border"
               strokeWidth="1"
             />
           );
@@ -355,7 +361,7 @@ function RadarChart({ stats, compareStats, pokemonName, comparePokemonName }: Ra
               y1={center}
               x2={endPoint.x}
               y2={endPoint.y}
-              stroke="#e5e7eb"
+              className="stroke-border"
               strokeWidth="1"
             />
           );
@@ -447,7 +453,7 @@ function RadarChart({ stats, compareStats, pokemonName, comparePokemonName }: Ra
               y={point.y + offsetY}
               textAnchor="middle"
               dominantBaseline="middle"
-              className="text-xs font-bold fill-gray-700"
+              className="text-xs font-bold fill-foreground"
             >
               {stat.value}
             </text>
@@ -458,11 +464,11 @@ function RadarChart({ stats, compareStats, pokemonName, comparePokemonName }: Ra
       {/* Legend */}
       {compareStats && (
         <div className="flex gap-4 mt-2 text-sm">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             <span className="capitalize">{pokemonName}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-purple-500" />
             <span className="capitalize">{comparePokemonName}</span>
           </div>
@@ -471,13 +477,13 @@ function RadarChart({ stats, compareStats, pokemonName, comparePokemonName }: Ra
       
       {/* Total */}
       <div className="mt-2 text-center">
-        <span className="text-sm text-gray-500">Total: </span>
-        <span className="text-lg font-bold text-gray-800">
+        <span className="text-sm text-muted-foreground">Total: </span>
+        <span className="text-lg font-bold text-foreground">
           {stats.reduce((sum, s) => sum + s.value, 0)}
         </span>
         {compareStats && (
           <>
-            <span className="text-sm text-gray-400 mx-2">vs</span>
+            <span className="text-sm text-muted-foreground mx-2">vs</span>
             <span className="text-lg font-bold text-purple-600">
               {compareStats.reduce((sum, s) => sum + s.value, 0)}
             </span>
