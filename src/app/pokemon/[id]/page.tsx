@@ -10,6 +10,8 @@ import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
 import RandomPokemonButton from '@/components/RandomPokemonButton';
 import EvolutionChain from '@/components/EvolutionChain';
+import PokemonFormVariants from '@/components/PokemonFormVariants';
+import PokemonLocations from '@/components/PokemonLocations';
 
 async function getPokemon(id: number) {
   const pokemon = await prisma.pokemon.findUnique({
@@ -100,6 +102,12 @@ export default async function PokemonPage({ params }: { params: { id: string } }
 
               {/* Evolution Chain */}
               <EvolutionChain pokemonId={pokemon.id} />
+
+              {/* Mega/Gigantamax Forms */}
+              <PokemonFormVariants 
+                pokemonId={pokemon.id} 
+                pokemonName={pokemon.name} 
+              />
             </div>
 
             {/* Right Side - Info and Stats */}
@@ -111,7 +119,10 @@ export default async function PokemonPage({ params }: { params: { id: string } }
               <BaseStats 
                 stats={pokemon.stats} 
                 pokemonName={pokemon.name}
-              />            
+              />
+
+              {/* Wild Encounter Locations */}
+              <PokemonLocations pokemonId={pokemon.id} />            
             </div>
           </div>
         </div>
