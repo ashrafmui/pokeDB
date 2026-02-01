@@ -69,11 +69,6 @@ function getEvolutionTriggerText(details: EvolutionDetail): string {
   return triggers.join(' + ') || '?';
 }
 
-function extractIdFromUrl(url: string): number {
-  const parts = url.split('/').filter(Boolean);
-  return parseInt(parts[parts.length - 1]);
-}
-
 async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution[][]> {
   const stages: PokemonEvolution[][] = [];
   
@@ -85,7 +80,6 @@ async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution
     }
     
     for (const link of links) {
-      const speciesId = extractIdFromUrl(link.species.url);
       
       try {
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${link.species.name}`);

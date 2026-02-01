@@ -1,7 +1,6 @@
 "use client";
 
 import SearchBar from "@/components/SearchBar";
-import Link from "next/link";
 import GenerationButtons from "@/components/GenerationButtons";
 import AnimatedPokeball from "@/components/AnimatedPokeball";
 import AnimatedBackground, { TitleDimensions } from '@/components/AnimatedBackground';
@@ -42,7 +41,7 @@ export default function Home() {
               <GenerationButtons activeGeneration={null}/>
             </div>
             <div className="flex items-center justify-center gap-4">
-              <RandomPokemonButton />
+              <RandomPokemonButton maxId={1025} />
             </div>
           </div>
         </div>
