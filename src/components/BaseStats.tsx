@@ -8,11 +8,6 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   Legend,
@@ -44,12 +39,10 @@ interface BaseStatsProps {
   pokemonName: string;
 }
 
-interface ChartDataPoint {
+interface RadarDataPoint {
   name: string;
-  fullName: string;
   value: number;
   compareValue?: number;
-  color: string;
 }
 
 // ============ Constants ============
@@ -57,9 +50,9 @@ const STAT_CONFIG: Record<string, { label: string; color: string }> = {
   'hp': { label: 'HP', color: '#FF5959' },
   'attack': { label: 'ATK', color: '#F5AC78' },
   'defense': { label: 'DEF', color: '#FAE078' },
-  'special-attack': { label: 'SP.ATK', color: '#9DB7F5' },
-  'special-defense': { label: 'SP.DEF', color: '#A7DB8D' },
-  'speed': { label: 'SPD', color: '#FA92B2' },
+  'special-attack': { label: 'SP. ATK', color: '#9DB7F5' },
+  'special-defense': { label: 'SP. DEF', color: '#A7DB8D' },
+  'speed': { label: 'SPEED', color: '#FA92B2' },
 };
 
 const STAT_ORDER = ['hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed'];
@@ -76,15 +69,13 @@ function calculateTotal(stats: Stat[]): number {
   return stats.reduce((sum, stat) => sum + stat.value, 0);
 }
 
-function formatChartData(stats: Stat[], compareStats?: Stat[] | null): ChartDataPoint[] {
+function formatRadarData(stats: Stat[], compareStats?: Stat[] | null): RadarDataPoint[] {
   return stats.map((stat, index) => {
-    const config = STAT_CONFIG[stat.name] || { label: stat.name, color: '#9ca3af' };
+    const config = STAT_CONFIG[stat.name] || { label: stat.name };
     return {
       name: config.label,
-      fullName: stat.name,
       value: stat.value,
       compareValue: compareStats?.[index]?.value,
-      color: config.color,
     };
   });
 }
@@ -208,36 +199,74 @@ function StatTotal({ total, compareTotal }: StatTotalProps) {
   );
 }
 
-interface StatsBarChartProps {
-  data: ChartDataPoint[];
-  showCompare: boolean;
+interface StatsBarsProps {
+  stats: Stat[];
+  compareStats: Stat[] | null;
+  compareMode: boolean;
 }
 
-function StatsBarChart({ data, showCompare }: StatsBarChartProps) {
+function StatsBars({ stats, compareStats, compareMode }: StatsBarsProps) {
   return (
-    <ResponsiveContainer width="100%" height={250}>
-      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
-        <XAxis type="number" domain={[0, MAX_STAT]} tick={{ fontSize: 12 }} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={50} />
-        <Tooltip
-          contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-          formatter={(value: number, name: string) => [value, name === 'value' ? 'Base' : 'Compare']}
-        />
-        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Bar>
-        {showCompare && (
-          <Bar dataKey="compareValue" fill={COMPARE_COLOR} opacity={0.6} radius={[0, 4, 4, 0]} />
-        )}
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-3">
+      {stats.map((stat, index) => {
+        const config = STAT_CONFIG[stat.name] || { label: stat.name, color: '#9ca3af' };
+        const compareStat = compareStats?.[index];
+        const diff = compareStat ? stat.value - compareStat.value : 0;
+
+        return (
+          <div key={stat.id} className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                {config.label}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-foreground">{stat.value}</span>
+                {compareMode && compareStat && (
+                  <>
+                    <span className="text-sm text-muted-foreground">vs</span>
+                    <span className="text-sm font-bold text-purple-600">{compareStat.value}</span>
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "text-xs font-medium",
+                        diff > 0 && "bg-green-100 text-green-600",
+                        diff < 0 && "bg-red-100 text-red-600",
+                        diff === 0 && "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {diff > 0 ? '+' : ''}{diff}
+                    </Badge>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="relative w-full bg-muted rounded-full h-2.5">
+              <div
+                className="absolute h-2.5 rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(stat.value / MAX_STAT * 100, 100)}%`,
+                  backgroundColor: config.color,
+                }}
+              />
+              {compareMode && compareStat && (
+                <div
+                  className="absolute h-2.5 rounded-full transition-all duration-500 opacity-50"
+                  style={{
+                    width: `${Math.min(compareStat.value / MAX_STAT * 100, 100)}%`,
+                    backgroundColor: COMPARE_COLOR,
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
 interface StatsRadarChartProps {
-  data: ChartDataPoint[];
+  data: RadarDataPoint[];
   showCompare: boolean;
   pokemonName: string;
   comparePokemonName?: string;
@@ -300,7 +329,7 @@ export default function BaseStats({ stats, pokemonName }: BaseStatsProps) {
   const compareStats = comparePokemon ? sortStats(comparePokemon.stats) : null;
   const compareTotal = comparePokemon ? calculateTotal(comparePokemon.stats) : undefined;
 
-  const chartData = formatChartData(sortedStats, compareStats);
+  const radarData = formatRadarData(sortedStats, compareStats);
 
   const searchPokemon = async () => {
     if (!searchQuery.trim()) return;
@@ -379,10 +408,14 @@ export default function BaseStats({ stats, pokemonName }: BaseStatsProps) {
         )}
 
         {view === 'bars' ? (
-          <StatsBarChart data={chartData} showCompare={compareMode && !!comparePokemon} />
+          <StatsBars
+            stats={sortedStats}
+            compareStats={compareStats}
+            compareMode={compareMode && !!comparePokemon}
+          />
         ) : (
           <StatsRadarChart
-            data={chartData}
+            data={radarData}
             showCompare={compareMode && !!comparePokemon}
             pokemonName={pokemonName}
             comparePokemonName={comparePokemon?.name}

@@ -1,7 +1,64 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { getVersionColor } from '@/lib/versionColors';
+
+// Origin mark mappings based on game version
+const ORIGIN_MARKS: Record<string, string> = {
+  // Gen 1 - Game Boy
+  'red': 'game-boy',
+  'blue': 'game-boy',
+  'yellow': 'game-boy',
+  // Gen 2 - Game Boy
+  'gold': 'game-boy',
+  'silver': 'game-boy',
+  'crystal': 'game-boy',
+  // Gen 3 - Game Boy
+  'ruby': 'game-boy',
+  'sapphire': 'game-boy',
+  'emerald': 'game-boy',
+  'firered': 'game-boy',
+  'leafgreen': 'game-boy',
+  // Gen 4 - Sinnoh
+  'diamond': 'sinnoh-gen8',
+  'pearl': 'sinnoh-gen8',
+  'platinum': 'sinnoh-gen8',
+  'heartgold': 'sinnoh-gen8',
+  'soulsilver': 'sinnoh-gen8',
+  // Gen 5 - Pentagon (using pentagon as closest)
+  'black': 'pentagon',
+  'white': 'pentagon',
+  'black-2': 'pentagon',
+  'white-2': 'pentagon',
+  // Gen 6 - Pentagon (Kalos)
+  'x': 'pentagon',
+  'y': 'pentagon',
+  'omega-ruby': 'pentagon',
+  'alpha-sapphire': 'pentagon',
+  // Gen 7 - Clover (Alola)
+  'sun': 'clover',
+  'moon': 'clover',
+  'ultra-sun': 'clover',
+  'ultra-moon': 'clover',
+  'lets-go-pikachu': 'lets-go',
+  'lets-go-eevee': 'lets-go',
+  // Gen 8 - Galar
+  'sword': 'galar',
+  'shield': 'galar',
+  'brilliant-diamond': 'sinnoh-gen8',
+  'shining-pearl': 'sinnoh-gen8',
+  'legends-arceus': 'hisui',
+  // Gen 9 - Paldea (using galar as placeholder, no paldea mark yet)
+  'scarlet': 'galar',
+  'violet': 'galar',
+};
+
+function getOriginMarkUrl(version: string): string | null {
+  const mark = ORIGIN_MARKS[version.toLowerCase()];
+  if (!mark) return null;
+  return `https://raw.githubusercontent.com/msikma/pokesprite/master/misc/origin-marks/home/${mark}.png`;
+}
 
 interface PokedexEntry {
   id: number;
@@ -92,11 +149,24 @@ export default function PokedexEntrySelector({ entries }: Props) {
           opacity: isAnimating ? 0 : 1,
         }}
       >
-        <div className="h-24 overflow-y-auto">
+        <div className="h-24 overflow-y-auto pr-8">
           <p className="font-pokemon-gb text-xs text-white leading-relaxed">
             {displayedEntry?.description || 'No description available'}
           </p>
         </div>
+        {/* Origin Mark */}
+        {getOriginMarkUrl(selectedVersion) && (
+          <div className="absolute bottom-3 right-3">
+            <Image
+              src={getOriginMarkUrl(selectedVersion)!}
+              alt="Origin mark"
+              width={24}
+              height={24}
+              className="brightness-0 invert opacity-70"
+              unoptimized
+            />
+          </div>
+        )}
       </div>
 
       {/* Version buttons */}
