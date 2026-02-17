@@ -61,21 +61,27 @@ async function getPokemon(id: number) {
 
   // Transform to match your existing component interfaces
   const types = pokemon.types.map((t) => ({
-    slot: t.slot,
-    typeName: t.type.name,
+    id: t.slot,
+    name: t.type.name,
   }));
 
-  const stats = pokemon.stats.map((s) => ({
+  const stats = pokemon.stats.map((s, i) => ({
+    id: i,
+    name: s.stat.name,
     statName: s.stat.name,
     baseStat: s.base_stat,
+    value: s.base_stat,
     effort: s.effort,
   }));
 
   const pokedexEntries = species.flavor_text_entries
     .filter((entry) => entry.language.name === 'en')
-    .map((entry) => ({
-      flavorText: entry.flavor_text.replace(/\f|\n|\r/g, ' '),
+    .map((entry, i) => ({
+      id: i,
+      version: entry.version.name,
       versionName: entry.version.name,
+      description: entry.flavor_text.replace(/\f|\n|\r/g, ' '),
+      flavorText: entry.flavor_text.replace(/\f|\n|\r/g, ' '),
     }));
 
   return {
