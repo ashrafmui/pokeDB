@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
           name: data.name,
           sprite:
             data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default ??
+            data.sprites.other?.showdown?.front_default ??
+            data.sprites.other?.home?.front_default ??
             data.sprites.front_default,
           types: data.types.map((t: { slot: number; type: { name: string } }) => ({
             id: t.slot,
