@@ -23,7 +23,7 @@ const PokemonTypes: React.FC<PokemonTypesProps> = ({ types }) => {
 };
 
 // Colors for each Pokémon type
-const typeColors: { [key: string]: string } = {
+export const typeColors: { [key: string]: string } = {
   fire: "#F08030",
   water: "#6890F0",
   grass: "#78C850",

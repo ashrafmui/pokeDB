@@ -65,3 +65,15 @@ export function calculateTypeEffectiveness(types: string[]): TypeEffectivenessRe
 export function getTypeRelations(typeName: string) {
   return TYPE_CHART[typeName.toLowerCase()] || null;
 }
+
+export function getGenerationFromId(id: number): string {
+  if (id <= 151) return "Generation I — Kanto";
+  if (id <= 251) return "Generation II — Johto";
+  if (id <= 386) return "Generation III — Hoenn";
+  if (id <= 493) return "Generation IV — Sinnoh";
+  if (id <= 649) return "Generation V — Unova";
+  if (id <= 721) return "Generation VI — Kalos";
+  if (id <= 809) return "Generation VII — Alola";
+  if (id <= 905) return "Generation VIII — Galar";
+  return "Generation IX — Paldea";
+}

@@ -7,7 +7,7 @@ async function getFullList() {
   if (cachedList) return cachedList;
 
   const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=10000', {
-    next: { revalidate: 86400 }, // Next.js cache: revalidate once per day
+    next: { revalidate: 86400 },
   });
   const data = await res.json();
   cachedList = data.results;
