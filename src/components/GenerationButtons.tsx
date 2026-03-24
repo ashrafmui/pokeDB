@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface GenerationButtonsProps {
   activeGeneration: number | null;
@@ -17,15 +18,12 @@ export default function GenerationButtons({ activeGeneration }: GenerationButton
 
         return (
           <Link key={index} href={`/generation/${generationNumber}`}>
-            <button
-              className={`font-pocket-monk ml-2 px-4 py-2 rounded-3xl focus:outline-none ${
-                isActive
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-black hover:bg-blue-600 hover:text-white"
-              }`}
+            <Button
+              variant={isActive ? "default" : "outline"}
+              className="rounded-full font-pocket-monk"
             >
               {gen}
-            </button>
+            </Button>
           </Link>
         );
       })}

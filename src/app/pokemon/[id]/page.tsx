@@ -35,13 +35,25 @@ interface PokeAPIFlavorTextEntry {
   language: { name: string };
   version: { name: string; url: string };
 }
-
 interface PokeAPIPokemon {
   id: number;
   name: string;
   types: PokeAPIType[];
   stats: PokeAPIStat[];
-  sprites: Record<string, unknown>;
+  sprites: {
+    front_default: string;
+    other: {
+      showdown: { front_default: string };
+      home: { front_default: string };
+    };
+    versions: {
+      'generation-v': {
+        'black-white': {
+          animated: { front_default: string };
+        };
+      };
+    };
+  };
 }
 
 interface PokeAPISpecies {
@@ -84,13 +96,20 @@ async function getPokemon(id: number) {
       flavorText: entry.flavor_text.replace(/\f|\n|\r/g, ' '),
     }));
 
-  return {
-    id: pokemon.id,
-    name: pokemon.name,
-    types,
-    stats,
-    pokedexEntries,
-  };
+  const sprite =
+    pokemon.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default ??
+    pokemon.sprites.other?.showdown?.front_default ??
+    pokemon.sprites.other?.home?.front_default ??
+    pokemon.sprites.front_default;
+
+return {
+  id: pokemon.id,
+  name: pokemon.name,
+  sprite,
+  types,
+  stats,
+  pokedexEntries,
+};
 }
 
 export default async function PokemonPage({ params }: { params: Promise<{ id: string }> }) {
@@ -114,6 +133,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
             <PokemonHeader
               pokemonId={pokemon.id}
               pokemonName={pokemon.name}
+              sprite={pokemon.sprite}
               types={pokemon.types}
               prevId={prevId}
               nextId={nextId}

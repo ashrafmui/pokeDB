@@ -17,6 +17,7 @@ interface Type {
 interface PokemonHeaderProps {
   pokemonId: number;
   pokemonName: string;
+  sprite: string;
   types: Type[];
   prevId: number;
   nextId: number;
@@ -115,7 +116,6 @@ function TypeIcon({ typeName }: { typeName: string }) {
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mb-1">Strong against (2x):</p>
                 <div className="flex flex-wrap gap-1">
-                  {/* For offensive, we need to find types that are weak TO this type */}
                   {typeData.weakTo.map((type) => (
                     <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
                       <Image
@@ -137,7 +137,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
   );
 }
 
-export default function PokemonHeader({ pokemonId, pokemonName, types, prevId, nextId, maxId }: PokemonHeaderProps) {
+export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, prevId, nextId, maxId }: PokemonHeaderProps) {
   return (
     <div className="flex items-center">
       {/* Left - Back & Random */}
@@ -166,10 +166,10 @@ export default function PokemonHeader({ pokemonId, pokemonName, types, prevId, n
         {/* Pokemon Sprite */}
         <div className="relative aspect-square rounded-2xl flex items-center justify-center shrink-0">
           <Image
-            src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`}
+            src={sprite}
             alt={pokemonName}
-            width={120}
-            height={120}
+            width={60}
+            height={60}
             unoptimized
           />
         </div>
