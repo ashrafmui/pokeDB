@@ -2,12 +2,23 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 
-export default function AnimatedPokeball() {
+interface AnimatedPokeballProps {
+  onAnimationComplete?: () => void;
+}
+
+export default function AnimatedPokeball({ onAnimationComplete }: AnimatedPokeballProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: -30, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      initial={{ x: "-100vw", y: 0, rotate: -1440 }}
+      animate={{ x: 0, y: -30, rotate: 0 }}
+      transition={{
+        duration: 2.5,
+        ease: "easeOut",
+        x: { duration: 2, ease: "easeOut" },
+        rotate: { duration: 2, ease: "easeOut" },
+        y: { duration: 0.6, ease: "easeOut", delay: 2 },
+      }}
+      onAnimationComplete={onAnimationComplete}
     >
       <Image
         src="/images/pokeball1.png"

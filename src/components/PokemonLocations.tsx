@@ -75,16 +75,13 @@ export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
   }, [gameLocations]);
 
   useEffect(() => {
-    if (selectedGame) {
-      const activeButton = buttonRefs.current.get(selectedGame);
-      if (activeButton) {
-        activeButton.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center',
-        });
-      }
-    }
+    if (!selectedGame) return;
+    const container = scrollContainerRef.current;
+    const activeButton = buttonRefs.current.get(selectedGame);
+    if (!container || !activeButton) return;
+    const left =
+      activeButton.offsetLeft - container.clientWidth / 2 + activeButton.clientWidth / 2;
+    container.scrollTo({ left, behavior: 'smooth' });
   }, [selectedGame]);
 
   useEffect(() => {

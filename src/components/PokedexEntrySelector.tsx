@@ -55,14 +55,12 @@ export default function PokedexEntrySelector({ entries }: Props) {
   }, [entries]);
 
   useEffect(() => {
+    const container = scrollContainerRef.current;
     const activeButton = buttonRefs.current.get(selectedVersion);
-    if (activeButton) {
-      activeButton.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
-    }
+    if (!container || !activeButton) return;
+    const left =
+      activeButton.offsetLeft - container.clientWidth / 2 + activeButton.clientWidth / 2;
+    container.scrollTo({ left, behavior: 'smooth' });
   }, [selectedVersion]);
 
   const handleVersionChange = (newVersion: string) => {

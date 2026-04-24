@@ -115,12 +115,13 @@ export default function PokemonMoves({ pokemonId }: PokemonMovesProps) {
   }, [availableVersions]);
 
   useEffect(() => {
-    if (selectedVersion) {
-      const activeButton = buttonRefs.current.get(selectedVersion);
-      if (activeButton) {
-        activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
-    }
+    if (!selectedVersion) return;
+    const container = scrollContainerRef.current;
+    const activeButton = buttonRefs.current.get(selectedVersion);
+    if (!container || !activeButton) return;
+    const left =
+      activeButton.offsetLeft - container.clientWidth / 2 + activeButton.clientWidth / 2;
+    container.scrollTo({ left, behavior: 'smooth' });
   }, [selectedVersion]);
 
   useEffect(() => {
