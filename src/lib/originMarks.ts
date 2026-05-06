@@ -1,45 +1,20 @@
-const ORIGIN_MARKS: Record<string, string> = {
-  'red': 'game-boy',
-  'blue': 'game-boy',
-  'yellow': 'game-boy',
-  'gold': 'game-boy',
-  'silver': 'game-boy',
-  'crystal': 'game-boy',
-  'ruby': 'game-boy',
-  'sapphire': 'game-boy',
-  'emerald': 'game-boy',
-  'firered': 'game-boy',
-  'leafgreen': 'game-boy',
-  'diamond': 'sinnoh-gen8',
-  'pearl': 'sinnoh-gen8',
-  'platinum': 'sinnoh-gen8',
-  'heartgold': 'sinnoh-gen8',
-  'soulsilver': 'sinnoh-gen8',
-  'black': 'pentagon',
-  'white': 'pentagon',
-  'black-2': 'pentagon',
-  'white-2': 'pentagon',
-  'x': 'pentagon',
-  'y': 'pentagon',
-  'omega-ruby': 'pentagon',
-  'alpha-sapphire': 'pentagon',
-  'sun': 'clover',
-  'moon': 'clover',
-  'ultra-sun': 'clover',
-  'ultra-moon': 'clover',
-  'lets-go-pikachu': 'lets-go',
-  'lets-go-eevee': 'lets-go',
-  'sword': 'galar',
-  'shield': 'galar',
-  'brilliant-diamond': 'sinnoh-gen8',
-  'shining-pearl': 'sinnoh-gen8',
-  'legends-arceus': 'hisui',
-  'scarlet': 'galar',
-  'violet': 'galar',
-};
+const GAME_LOGOS = new Set([
+  'red', 'blue', 'yellow',
+  'gold', 'silver', 'crystal',
+  'ruby', 'sapphire', 'emerald', 'firered', 'leafgreen',
+  'diamond', 'pearl', 'platinum', 'heartgold', 'soulsilver',
+  'black', 'white', 'black-2', 'white-2',
+  'x', 'y', 'omega-ruby', 'alpha-sapphire',
+  'sun', 'moon', 'ultra-sun', 'ultra-moon',
+  'lets-go-pikachu', 'lets-go-eevee',
+  'sword', 'shield',
+  'brilliant-diamond', 'shining-pearl',
+  'legends-arceus',
+  'scarlet', 'violet',
+]);
 
-export function getOriginMarkUrl(version: string): string | null {
-  const mark = ORIGIN_MARKS[version.toLowerCase()];
-  if (!mark) return null;
-  return `https://raw.githubusercontent.com/msikma/pokesprite/master/misc/origin-marks/home/${mark}.png`;
+export function fetchBoxartUrl(version: string): string | null {
+  const key = version.toLowerCase();
+  if (!GAME_LOGOS.has(key)) return null;
+  return `/images/game-logos/${key}.png`;
 }

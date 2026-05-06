@@ -1,7 +1,6 @@
 import BackgroundGradient from '@/components/BackgroundGradient';
 import PokedexEntrySelector from '@/components/PokedexEntrySelector';
 import SpriteCarousel from '@/components/SpriteCarousel';
-import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
 import EvolutionChain from '@/components/EvolutionChain';
@@ -58,6 +57,7 @@ interface PokeAPIPokemon {
 
 interface PokeAPISpecies {
   flavor_text_entries: PokeAPIFlavorTextEntry[];
+  habitat: { name: string; url: string } | null;
 }
 
 async function getPokemon(id: number) {
@@ -69,7 +69,7 @@ async function getPokemon(id: number) {
   if (!pokemonRes.ok) return null;
 
   const pokemon: PokeAPIPokemon = await pokemonRes.json();
-  const species: PokeAPISpecies = speciesRes.ok ? await speciesRes.json() : { flavor_text_entries: [] };
+  const species: PokeAPISpecies = speciesRes.ok ? await speciesRes.json() : { flavor_text_entries: [], habitat: null };
 
   // Transform to match your existing component interfaces
   const types = pokemon.types.map((t) => ({
@@ -109,6 +109,7 @@ return {
   types,
   stats,
   pokedexEntries,
+  habitat: species.habitat?.name ?? null,
 };
 }
 
@@ -146,10 +147,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               <SpriteCarousel
                 pokemonId={pokemon.id}
                 pokemonName={pokemon.name}
-              />
-              <PokemonSpriteVariants
-                pokemonId={pokemon.id}
-                pokemonName={pokemon.name}
+                types={pokemon.types.map((t) => t.name)}
               />
               <EvolutionChain pokemonId={pokemon.id} />
               <PokemonFormVariants

@@ -12,9 +12,10 @@ interface SpriteItem {
 interface Props {
   pokemonId: number;
   pokemonName: string;
+  embedded?: boolean;
 }
 
-export default function PokemonSpriteVariants({ pokemonId, pokemonName }: Props) {
+export default function PokemonSpriteVariants({ pokemonId, pokemonName, embedded = false }: Props) {
   const spriteItems: SpriteItem[] = [
     { 
       key: 'front', 
@@ -52,33 +53,39 @@ export default function PokemonSpriteVariants({ pokemonId, pokemonName }: Props)
     return null;
   }
 
+  const grid = (
+    <div className="grid grid-cols-4 gap-4">
+      {availableSprites.map((sprite) => (
+        <div key={sprite.key} className="flex flex-col items-center">
+          <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md">
+            <img
+              src={sprite.src}
+              alt={`${pokemonName} - ${sprite.label}`}
+              width={96}
+              height={96}
+              className="object-contain"
+              style={{ imageRendering: 'pixelated' }}
+              onError={() => handleImageError(sprite.key)}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground text-center">
+            {sprite.label}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (embedded) {
+    return grid;
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold">Sprites</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-4 gap-4">
-          {availableSprites.map((sprite) => (
-            <div key={sprite.key} className="flex flex-col items-center">
-              <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md">
-                <img
-                  src={sprite.src}
-                  alt={`${pokemonName} - ${sprite.label}`}
-                  width={96}
-                  height={96}
-                  className="object-contain"
-                  style={{ imageRendering: 'pixelated' }}
-                  onError={() => handleImageError(sprite.key)}
-                />
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                {sprite.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </CardContent>
+      <CardContent>{grid}</CardContent>
     </Card>
   );
 }

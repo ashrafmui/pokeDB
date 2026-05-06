@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { getVersionColor } from '@/lib/versionColors';
-import { getOriginMarkUrl } from '@/lib/originMarks';
+import { fetchBoxartUrl } from '@/lib/originMarks';
+import { getPlatformIconUrl, getPlatformLabel } from '@/lib/platformIcons';
+import { getGenerationRoman } from '@/lib/generations';
 
 
 // Origin mark mappings based on game version
@@ -86,8 +88,8 @@ export default function PokedexEntrySelector({ entries }: Props) {
   return (
     <div className="relative h-[180px]">
       {/* Main card */}
-      <div 
-        className={`absolute left-0 right-0 rounded-t-2xl overflow-hidden transition-all duration-150 ease-out ${activeColors.bg}`}
+      <div
+        className={`absolute left-0 right-0 rounded-t-2xl overflow-hidden transition-all duration-150 ease-out bg-white border-2 ${activeColors.border}`}
         style={{
           bottom: '38px',
           height: isAnimating ? '0px' : '140px',
@@ -95,21 +97,38 @@ export default function PokedexEntrySelector({ entries }: Props) {
           opacity: isAnimating ? 0 : 1,
         }}
       >
-        <div className="h-24 overflow-y-auto pr-8">
-          <p className="font-pokemon-gb text-xs text-white leading-relaxed">
+        {getGenerationRoman(selectedVersion) && (
+          <div className="absolute top-5 right-6 font-pocket-monk text-xl text-black opacity-75 leading-none">
+            {getGenerationRoman(selectedVersion)}
+          </div>
+        )}
+        <div className="h-24 overflow-y-auto pr-44">
+          <p className="font-pokemon-gb text-xs text-black leading-relaxed">
             {displayedEntry?.description || 'No description available'}
           </p>
         </div>
-        {/* Origin Mark */}
-        {getOriginMarkUrl(selectedVersion) && (
-          <div className="absolute bottom-3 right-3">
+        {fetchBoxartUrl(selectedVersion) && (
+          <div className="absolute top-3 right-14 bottom-3 w-28 rounded-lg overflow-hidden">
             <Image
-              src={getOriginMarkUrl(selectedVersion)!}
-              alt="Origin mark"
-              width={24}
-              height={24}
-              className="brightness-0 invert opacity-70"
-              unoptimized
+              src={fetchBoxartUrl(selectedVersion)!}
+              alt={`${selectedVersion} game logo`}
+              fill
+              className="object-contain"
+              sizes="112px"
+            />
+          </div>
+        )}
+        {getPlatformIconUrl(selectedVersion) && (
+          <div
+            className="absolute bottom-3 right-3 w-8 h-8"
+            // title={getPlatformLabel(selectedVersion) ?? undefined}
+          >
+            <Image
+              src={getPlatformIconUrl(selectedVersion)!}
+              alt={getPlatformLabel(selectedVersion) ?? 'platform icon'}
+              fill
+              className="object-contain"
+              sizes="32px"
             />
           </div>
         )}

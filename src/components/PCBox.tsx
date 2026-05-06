@@ -58,7 +58,7 @@ export default function PCBox({ pokemonList, generation }: PCBoxProps) {
               style={{ background: theme.headerBg, borderColor: theme.boxBorder }}
             >
               <span
-                className="font-bold text-lg tracking-widest relative z-10"
+                className="font-pokemon-gb text-lg tracking-widest relative z-10"
                 style={{ color: theme.textColor, textShadow: theme.textShadow }}
               >
                 {theme.name.toUpperCase()}

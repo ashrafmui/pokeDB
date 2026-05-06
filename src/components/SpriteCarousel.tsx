@@ -1,133 +1,177 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
-import { cn } from '@/lib/utils';
-
-interface SpriteOption {
-  key: string;
-  label: string;
-  src: string;
-}
+import { StarFilledIcon } from '@radix-ui/react-icons';
+import { getTypeColors } from '@/lib/typeBackgrounds';
+import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 
 interface Props {
   pokemonId: number;
   pokemonName: string;
+  types: string[];
 }
 
-export default function SpriteCarousel({ pokemonId, pokemonName }: Props) {
-  const spriteOptions: SpriteOption[] = [
-    { 
-      key: 'artwork', 
-      label: 'Official Artwork', 
-      src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png` 
-    },
-    { 
-      key: 'artwork-shiny', 
-      label: 'Official Artwork (Shiny)', 
-      src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png` 
-    },
-  ];
+export default function SpriteCarousel({ pokemonId, pokemonName, types }: Props) {
+  const regularSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
+  const shinySrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png`;
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [isShiny, setIsShiny] = useState(false);
+  const [shinyFailed, setShinyFailed] = useState(false);
+  const [regularFailed, setRegularFailed] = useState(false);
 
-  const availableSprites = spriteOptions.filter(
-    (option) => !failedImages.has(option.key)
-  );
+  // Distance from viewport-left to the card's natural left edge, derived from
+  // the page wrapper. Used to extend the card to the viewport edge without a
+  // JS measurement / layout shift.
+  // 72rem = max-w-6xl, 2rem = p-8 — keep in sync with src/app/pokemon/[id]/page.tsx.
+  const VIEWPORT_OFFSET = 'max(0px, (100vw - 72rem) / 2) + 2rem';
 
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? availableSprites.length - 1 : prev - 1));
+  const SPRITE_BOX = 300;
+  const OVAL_W = 200;
+  const OVAL_H = 50;
+  const DEFAULT_PLATFORM = {
+    left: SPRITE_BOX / 2 - OVAL_W / 2,
+    top: SPRITE_BOX - OVAL_H - 8,
   };
+  const [platform, setPlatform] = useState<{ left: number; top: number }>(DEFAULT_PLATFORM);
 
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev === availableSprites.length - 1 ? 0 : prev + 1));
-  };
+  const computePlatformPosition = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0);
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  const handleImageError = (key: string) => {
-    setFailedImages((prev) => new Set(prev).add(key));
-    if (currentIndex >= availableSprites.length - 1) {
-      setCurrentIndex(0);
+      let minX = canvas.width, maxX = 0, minY = canvas.height, maxY = 0;
+      let found = false;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          if (data[(y * canvas.width + x) * 4 + 3] > 10) {
+            found = true;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (!found) {
+        setPlatform(DEFAULT_PLATFORM);
+        return;
+      }
+
+      const scale = SPRITE_BOX / Math.max(canvas.width, canvas.height);
+      const offsetX = (SPRITE_BOX - canvas.width * scale) / 2;
+      const offsetY = (SPRITE_BOX - canvas.height * scale) / 2;
+      const centerX = offsetX + ((minX + maxX) / 2) * scale;
+      const bottomY = offsetY + maxY * scale;
+
+      setPlatform({
+        left: centerX - OVAL_W / 2,
+        top: bottomY - OVAL_H / 2,
+      });
+    } catch {
+      setPlatform(DEFAULT_PLATFORM);
     }
   };
 
-  const currentSprite = availableSprites[currentIndex];
-
-  if (availableSprites.length === 0) {
+  if (regularFailed && shinyFailed) {
     return (
-      <Card>
-        <CardContent className="p-8 flex items-center justify-center">
-          <p className="text-muted-foreground">No sprites available</p>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border bg-card text-card-foreground shadow">
+        <div className="p-8 flex items-center justify-center">
+          <p className="font-pokemon-gb text-muted-foreground">No sprites available</p>
+        </div>
+      </div>
     );
   }
 
+  const showShiny = isShiny && !shinyFailed;
+  const currentSrc = showShiny ? shinySrc : regularSrc;
+  const currentLabel = showShiny ? 'Official Artwork (Shiny)' : 'Official Artwork';
+
+  const [primary, secondary = '#FFFFFF'] = getTypeColors(types);
+  const leftTexture = `conic-gradient(${primary} 25%, ${secondary} 0 50%, ${primary} 0 75%, ${secondary} 0) 0 0 / 24px 24px`;
+
   return (
-    <Card>
-      <CardContent className="p-8 flex flex-col items-center">
-        {/* Main sprite display */}
-        <div className="relative w-full flex items-center justify-center h-[300px]">
-          {availableSprites.length > 1 && (
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={goToPrevious}
-              className="absolute left-0 rounded-full z-10"
-              aria-label="Previous sprite"
-            >
-              <ChevronLeftIcon className="h-5 w-5" />
-            </Button>
-          )}
-
-          <img
-            src={currentSprite.src}
-            alt={`${pokemonName} - ${currentSprite.label}`}
-            width={300}
-            height={300}
-            className="object-contain"
-            onError={() => handleImageError(currentSprite.key)}
-          />
-
-          {availableSprites.length > 1 && (
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={goToNext}
-              className="absolute right-0 rounded-full z-10"
-              aria-label="Next sprite"
-            >
-              <ChevronRightIcon className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-
-        {/* Sprite label */}
-        <p className="mt-4 text-sm font-medium text-muted-foreground">
-          {currentSprite.label}
-        </p>
-
-        {/* Dot indicators */}
-        {availableSprites.length > 1 && (
-          <div className="flex gap-2 mt-3">
-            {availableSprites.map((option, index) => (
-              <button
-                key={option.key}
-                onClick={() => setCurrentIndex(index)}
-                className={cn(
-                  "w-2 h-2 rounded-full transition-colors",
-                  index === currentIndex 
-                    ? "bg-primary" 
-                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                )}
-                aria-label={`View ${option.label}`}
+    <div>
+      <div
+        style={{
+          marginLeft: `calc(-1 * (${VIEWPORT_OFFSET}))`,
+          width: `calc(100% + ${VIEWPORT_OFFSET})`,
+          background: `linear-gradient(white, white) padding-box, ${primary} border-box`,
+          border: '4px solid transparent',
+          borderLeftWidth: 0,
+        }}
+        className="rounded-xl rounded-l-none shadow text-card-foreground relative"
+      >
+        <div
+          aria-hidden
+          className="absolute left-0 top-0 bottom-0 pointer-events-none"
+          style={{
+            width: `calc(${VIEWPORT_OFFSET})`,
+            background: leftTexture,
+          }}
+        />
+        <div
+          className="py-8 pr-8 flex flex-col items-center relative"
+          style={{ paddingLeft: `calc(${VIEWPORT_OFFSET} + 2rem)` }}
+        >
+          <div className="relative w-full flex items-center justify-center h-[300px]">
+            <div className="relative" style={{ width: SPRITE_BOX, height: SPRITE_BOX }}>
+              <div
+                aria-hidden
+                className="absolute rounded-[50%] bg-gray-500/30 blur-sm"
+                style={{
+                  left: `${platform.left}px`,
+                  top: `${platform.top}px`,
+                  width: `${OVAL_W}px`,
+                  height: `${OVAL_H}px`,
+                }}
               />
-            ))}
+              <img
+                src={currentSrc}
+                alt={`${pokemonName} - ${currentLabel}`}
+                width={SPRITE_BOX}
+                height={SPRITE_BOX}
+                className="object-contain relative"
+                crossOrigin="anonymous"
+                onLoad={computePlatformPosition}
+                onError={() => (showShiny ? setShinyFailed(true) : setRegularFailed(true))}
+              />
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <p className="mt-4 text-sm font-pokemon-gb text-muted-foreground">
+            {currentLabel}
+          </p>
+
+          {!shinyFailed && !regularFailed && (
+            <Button
+              variant={showShiny ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setIsShiny((prev) => !prev)}
+              className="mt-3 font-pokemon-gb"
+              aria-pressed={showShiny}
+            >
+              <StarFilledIcon className="h-4 w-4 mr-1.5" />
+              Shiny
+            </Button>
+          )}
+
+          <div className="mt-6 w-full">
+            <PokemonSpriteVariants
+              pokemonId={pokemonId}
+              pokemonName={pokemonName}
+              embedded
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
