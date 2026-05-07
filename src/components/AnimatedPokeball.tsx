@@ -4,13 +4,18 @@ import Image from "next/image";
 
 interface AnimatedPokeballProps {
   onAnimationComplete?: () => void;
+  // y offset (px) where the pokeball rolls in. After rolling, it animates
+  // up to y: 0 — which is the pokeball's natural flex position when content
+  // below it is in the layout. Pass `(contentHeight + gap) / 2` so the
+  // pokeball visually starts at the viewport-center.
+  initialYOffset?: number;
 }
 
-export default function AnimatedPokeball({ onAnimationComplete }: AnimatedPokeballProps) {
+export default function AnimatedPokeball({ onAnimationComplete, initialYOffset = 0 }: AnimatedPokeballProps) {
   return (
     <motion.div
-      initial={{ x: "-100vw", y: 0, rotate: -1440 }}
-      animate={{ x: 0, y: -30, rotate: 0 }}
+      initial={{ x: "-100vw", y: initialYOffset, rotate: -1440 }}
+      animate={{ x: 0, y: 0, rotate: 0 }}
       transition={{
         duration: 2.5,
         ease: "easeOut",

@@ -8,12 +8,14 @@ import Title from '@/components/Title';
 import ClickHintModal from '@/components/ClickHintModal';
 import Footer from '@/components/Footer';
 import RandomPokemonButton from '@/components/RandomPokemonButton';
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion } from 'motion/react';
 
 export default function Home() {
   const [titleDimensions, setTitleDimensions] = useState<TitleDimensions | null>(null);
   const [pokeballDone, setPokeballDone] = useState(false);
+  const [pokeballYOffset, setPokeballYOffset] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePokeballComplete = useCallback(() => {
     setPokeballDone(true);
@@ -27,40 +29,54 @@ export default function Home() {
     };
   }, []);
 
+  // Measure the reserved content stack so the pokeball can roll in at the
+  // viewport-center y, then animate up to its with-content position.
+  // Offset = (content_height + gap) / 2, where gap = 32px (gap-8).
+  useEffect(() => {
+    if (contentRef.current) {
+      const height = contentRef.current.offsetHeight;
+      setPokeballYOffset((height + 32) / 2);
+    }
+  }, []);
+
   return (
     <main className="overflow-hidden h-screen">
-      <AnimatedBackground titleDimensions={titleDimensions} />
+      {pokeballDone && <AnimatedBackground titleDimensions={titleDimensions} />}
 
       <div className="relative h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 flex-col items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
           <div className="flex flex-col items-center gap-8">
             <div className="flex items-center justify-center">
-              <AnimatedPokeball onAnimationComplete={handlePokeballComplete} />
+              {pokeballYOffset !== null && (
+                <AnimatedPokeball
+                  onAnimationComplete={handlePokeballComplete}
+                  initialYOffset={pokeballYOffset}
+                />
+              )}
             </div>
 
-            <AnimatePresence>
-              {pokeballDone && (
-                <motion.div
-                  className="flex flex-col items-center gap-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  <div className="flex items-center justify-center">
-                    <Title onDimensions={setTitleDimensions} />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <SearchBar />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <GenerationButtons activeGeneration={null}/>
-                  </div>
-                  <div className="flex items-center justify-center gap-4">
-                    <RandomPokemonButton maxId={1025} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <motion.div
+              ref={contentRef}
+              className="flex flex-col items-center gap-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={pokeballDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              style={{ pointerEvents: pokeballDone ? 'auto' : 'none' }}
+              aria-hidden={!pokeballDone}
+            >
+              <div className="flex items-center justify-center">
+                <Title onDimensions={setTitleDimensions} />
+              </div>
+              <div className="flex items-center justify-center">
+                <SearchBar />
+              </div>
+              <div className="flex items-center justify-center">
+                <GenerationButtons activeGeneration={null}/>
+              </div>
+              <div className="flex items-center justify-center gap-4">
+                <RandomPokemonButton maxId={1025} />
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
