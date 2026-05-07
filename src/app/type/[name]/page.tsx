@@ -17,6 +17,19 @@ interface PokemonData {
   types: string[];
 }
 
+async function fetchInBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    results.push(...(await Promise.all(batch.map(fn))));
+  }
+  return results;
+}
+
 async function getTypePokemon(typeName: string): Promise<PokemonData[] | null> {
   const res = await fetch(`https://pokeapi.co/api/v2/type/${typeName}`, {
     next: { revalidate: 86400 },
@@ -36,24 +49,23 @@ async function getTypePokemon(typeName: string): Promise<PokemonData[] | null> {
     .filter((p: { id: number }) => p.id <= 10000)
     .sort((a: { id: number }, b: { id: number }) => a.id - b.id);
 
-  // Fetch details for each Pokemon in parallel (types + sprite)
-  const detailed = await Promise.all(
-    entries.map(async (p: { id: number; name: string }) => {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}`, {
-        next: { revalidate: 86400 },
-      });
-      const pokemon = await res.json();
+  // Batch fetches to avoid opening hundreds of simultaneous connections to
+  // PokeAPI during build, which causes ETIMEDOUT under load.
+  const detailed = await fetchInBatches(entries, 20, async (p: { id: number; name: string }) => {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}`, {
+      next: { revalidate: 86400 },
+    });
+    const pokemon = await res.json();
 
-      return {
-        id: pokemon.id,
-        name: pokemon.name,
-        sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`,
-        types: pokemon.types.map(
-          (t: { type: { name: string } }) => t.type.name
-        ),
-      };
-    })
-  );
+    return {
+      id: pokemon.id,
+      name: pokemon.name,
+      sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`,
+      types: pokemon.types.map(
+        (t: { type: { name: string } }) => t.type.name
+      ),
+    };
+  });
 
   return detailed;
 }
