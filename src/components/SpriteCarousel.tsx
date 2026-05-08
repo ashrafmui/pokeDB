@@ -107,7 +107,7 @@ export default function SpriteCarousel({ pokemonId, pokemonName, types }: Props)
           border: '4px solid transparent',
           borderLeftWidth: 0,
         }}
-        className="rounded-xl rounded-l-none shadow text-card-foreground relative"
+        className="rounded-2xl rounded-l-none shadow text-card-foreground relative"
       >
         <div
           aria-hidden
@@ -155,7 +155,7 @@ export default function SpriteCarousel({ pokemonId, pokemonName, types }: Props)
               variant={showShiny ? 'default' : 'outline'}
               size="sm"
               onClick={() => setIsShiny((prev) => !prev)}
-              className="mt-3 font-pokemon-gb"
+              className="mt-3"
               aria-pressed={showShiny}
             >
               <StarFilledIcon className="h-4 w-4 mr-1.5" />
