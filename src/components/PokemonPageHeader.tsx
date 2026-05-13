@@ -164,16 +164,18 @@ export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, p
         </span>
 
         {/* Pokemon Sprite */}
-        <div className="relative aspect-square rounded-2xl flex items-center justify-center shrink-0">
+        {/* Pokemon Sprite */}
+        <div className="relative w-[60px] h-[60px] rounded-2xl flex items-center justify-center shrink-0">
           <Image
             src={sprite}
             alt={pokemonName}
             width={60}
             height={60}
             unoptimized
+            className="object-contain max-w-full max-h-full"
           />
         </div>
-
+        
         {/* Name */}
         <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none">
           {pokemonName}

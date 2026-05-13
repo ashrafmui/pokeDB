@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { AnimatedCollapsibleContent, Collapsible, CollapseToggle, useCollapsible } from '@/components/ui/collapsible';
 
 interface PokemonForm {
   id: number;
@@ -83,6 +84,7 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
   const [forms, setForms] = useState<PokemonForm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState<PokemonForm | null>(null);
+  const { isOpen, toggle, setIsOpen } = useCollapsible(true);
 
   useEffect(() => {
     async function fetchForms() {
@@ -163,10 +165,15 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <h2 className="text-xl font-semibold mb-4">Special Forms</h2>
-      
-      <div className="flex flex-col items-center gap-4">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
+    <div className="bg-white rounded-2xl shadow-xl p-6 relative">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-xl font-semibold">Special Forms</h2>
+        <CollapseToggle isOpen={isOpen} onToggle={toggle} />
+      </div>
+
+      <AnimatedCollapsibleContent>
+      <div className="flex flex-col items-center gap-4 mt-4">
         {/* Selected Form Display */}
         {selectedForm && (
           <div className="flex flex-col items-center">
@@ -245,6 +252,8 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
           </div>
         )}
       </div>
+      </AnimatedCollapsibleContent>
     </div>
+    </Collapsible>
   );
 }

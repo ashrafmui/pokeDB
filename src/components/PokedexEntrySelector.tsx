@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { AnimatedCollapsibleContent, Collapsible, CollapseToggle, useCollapsible } from '@/components/ui/collapsible';
 import { getVersionColor } from '@/lib/versionColors';
 import { fetchBoxartUrl } from '@/lib/originMarks';
 import { getPlatformIconUrl, getPlatformLabel } from '@/lib/platformIcons';
@@ -26,6 +27,7 @@ export default function PokedexEntrySelector({ entries }: Props) {
   const [displayedEntry, setDisplayedEntry] = useState(entries[0]);
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(false);
+  const { isOpen, toggle, setIsOpen } = useCollapsible(true);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
@@ -79,13 +81,46 @@ export default function PokedexEntrySelector({ entries }: Props) {
 
   if (entries.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
-        <p className="text-gray-500 italic">No Pokédex entry available</p>
-      </div>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
+        <div className="relative min-h-[44px]">
+          <CollapseToggle
+            isOpen={isOpen}
+            onToggle={toggle}
+            className="absolute top-[14px] right-3 z-50"
+          />
+          <div
+            className={`absolute inset-x-0 top-0 bg-white rounded-2xl shadow-xl border-2 border-gray-300 px-6 py-3 transition-opacity duration-150 ${
+              isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 delay-100'
+            }`}
+          >
+            <span className="font-pocket-monk text-sm text-gray-500 italic">Pokédex Entry</span>
+          </div>
+          <AnimatedCollapsibleContent>
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <p className="text-gray-500 italic">No Pokédex entry available</p>
+            </div>
+          </AnimatedCollapsibleContent>
+        </div>
+      </Collapsible>
     );
   }
 
   return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
+      <div className="relative min-h-[44px]">
+        <CollapseToggle
+          isOpen={isOpen}
+          onToggle={toggle}
+          className="absolute top-[14px] right-3 z-50"
+        />
+        <div
+          className={`absolute inset-x-0 top-0 bg-white rounded-2xl shadow-xl border-2 ${activeColors.border} px-6 py-3 transition-opacity duration-150 ${
+            isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 delay-100'
+          }`}
+        >
+          <span className="font-pocket-monk text-sm text-black">Pokédex Entry</span>
+        </div>
+        <AnimatedCollapsibleContent>
     <div className="relative h-[180px]">
       {/* Main card */}
       <div
@@ -98,7 +133,7 @@ export default function PokedexEntrySelector({ entries }: Props) {
         }}
       >
         {getGenerationRoman(selectedVersion) && (
-          <div className="absolute top-5 right-6 font-pocket-monk text-xl text-black opacity-75 leading-none">
+          <div className="absolute top-[26px] right-6 font-pocket-monk text-xl text-black opacity-75 leading-none">
             {getGenerationRoman(selectedVersion)}
           </div>
         )}
@@ -181,5 +216,8 @@ export default function PokedexEntrySelector({ entries }: Props) {
         </div>
       )}
     </div>
+        </AnimatedCollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }
