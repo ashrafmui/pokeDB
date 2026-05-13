@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { StarFilledIcon } from '@radix-ui/react-icons';
 import { getTypeColors } from '@/lib/typeBackgrounds';
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
+import PokedexTopBar from '@/components/PokedexTopBar';
+
 
 interface Props {
   pokemonId: number;
   pokemonName: string;
   types: string[];
+  spritesVersions: Record<string, unknown>;
 }
 
-export default function SpriteCarousel({ pokemonId, pokemonName, types }: Props) {
+export default function PokemonShowcase({ pokemonId, pokemonName, types, spritesVersions }: Props) {
   const regularSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
   const shinySrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png`;
 
@@ -117,6 +120,8 @@ export default function SpriteCarousel({ pokemonId, pokemonName, types }: Props)
             background: leftTexture,
           }}
         />
+        <PokedexTopBar leftInset={VIEWPORT_OFFSET} />
+
         <div
           className="py-8 pr-8 flex flex-col items-center relative"
           style={{ paddingLeft: `calc(${VIEWPORT_OFFSET} + 2rem)` }}
@@ -167,6 +172,7 @@ export default function SpriteCarousel({ pokemonId, pokemonName, types }: Props)
             <PokemonSpriteVariants
               pokemonId={pokemonId}
               pokemonName={pokemonName}
+              spritesVersions={spritesVersions}
               embedded
             />
           </div>

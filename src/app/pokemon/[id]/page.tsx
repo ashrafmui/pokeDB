@@ -1,6 +1,6 @@
 import BackgroundGradient from '@/components/BackgroundGradient';
 import PokedexEntrySelector from '@/components/PokedexEntrySelector';
-import SpriteCarousel from '@/components/SpriteCarousel';
+import PokemonShowcase from '@/components/PokemonShowcase';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
 import EvolutionChain from '@/components/EvolutionChain';
@@ -34,6 +34,7 @@ interface PokeAPIFlavorTextEntry {
   language: { name: string };
   version: { name: string; url: string };
 }
+
 interface PokeAPIPokemon {
   id: number;
   name: string;
@@ -45,13 +46,7 @@ interface PokeAPIPokemon {
       showdown: { front_default: string };
       home: { front_default: string };
     };
-    versions: {
-      'generation-v': {
-        'black-white': {
-          animated: { front_default: string };
-        };
-      };
-    };
+    versions: Record<string, unknown>;
   };
 }
 
@@ -96,21 +91,24 @@ async function getPokemon(id: number) {
       flavorText: entry.flavor_text.replace(/\f|\n|\r/g, ' '),
     }));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const versions = pokemon.sprites.versions as any;
   const sprite =
-    pokemon.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default ??
+    versions?.['generation-v']?.['black-white']?.animated?.front_default ??
     pokemon.sprites.other?.showdown?.front_default ??
     pokemon.sprites.other?.home?.front_default ??
     pokemon.sprites.front_default;
 
-return {
-  id: pokemon.id,
-  name: pokemon.name,
-  sprite,
-  types,
-  stats,
-  pokedexEntries,
-  habitat: species.habitat?.name ?? null,
-};
+  return {
+    id: pokemon.id,
+    name: pokemon.name,
+    sprite,
+    types,
+    stats,
+    pokedexEntries,
+    habitat: species.habitat?.name ?? null,
+    spritesVersions: (pokemon.sprites.versions ?? {}) as Record<string, unknown>,
+  };
 }
 
 export default async function PokemonPage({ params }: { params: Promise<{ id: string }> }) {
@@ -144,10 +142,11 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <SpriteCarousel
+              <PokemonShowcase
                 pokemonId={pokemon.id}
                 pokemonName={pokemon.name}
                 types={pokemon.types.map((t) => t.name)}
+                spritesVersions={pokemon.spritesVersions}
               />
               <EvolutionChain pokemonId={pokemon.id} />
               <PokemonFormVariants
