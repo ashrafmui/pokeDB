@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Sparkles } from 'lucide-react';
-import { getTypeColors } from '@/lib/typeBackgrounds';
 
 type FormType = 'mega' | 'mega-x' | 'mega-y' | 'gmax';
 
@@ -42,11 +41,10 @@ import EvolutionChain from '@/components/EvolutionChain';
 interface Props {
   pokemonId: number;
   pokemonName: string;
-  types: string[];
   spritesVersions: Record<string, unknown>;
 }
 
-export default function PokemonShowcase({ pokemonId, pokemonName, types, spritesVersions }: Props) {
+export default function PokemonShowcase({ pokemonId, pokemonName, spritesVersions }: Props) {
   const regularSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
   const shinySrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png`;
 
@@ -90,12 +88,6 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
       cancelled = true;
     };
   }, [pokemonName]);
-
-  // Distance from viewport-left to the card's natural left edge, derived from
-  // the page wrapper. Used to extend the card to the viewport edge without a
-  // JS measurement / layout shift.
-  // 72rem = max-w-6xl, 2rem = p-8 — keep in sync with src/app/pokemon/[id]/page.tsx.
-  const VIEWPORT_OFFSET = 'max(0px, (100vw - 72rem) / 2) + 2rem';
 
   const SPRITE_BOX = 300;
   const OVAL_W = 200;
@@ -174,35 +166,11 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
       : regularSrc;
   const currentLabel = showShiny ? 'Official Artwork (Shiny)' : 'Official Artwork';
 
-  const [primary, secondary = '#FFFFFF'] = getTypeColors(types);
-  const leftTexture = `conic-gradient(${primary} 25%, ${secondary} 0 50%, ${primary} 0 75%, ${secondary} 0) 0 0 / 24px 24px`;
-
   return (
-    <div>
-      <div
-        style={{
-          marginLeft: `calc(-1 * (${VIEWPORT_OFFSET}))`,
-          width: `calc(100% + ${VIEWPORT_OFFSET})`,
-          background: `linear-gradient(white, white) padding-box, ${primary} border-box`,
-          border: '4px solid transparent',
-          borderLeftWidth: 0,
-        }}
-        className="rounded-2xl rounded-l-none shadow text-card-foreground relative"
-      >
-        <div
-          aria-hidden
-          className="absolute left-0 top-0 bottom-0 pointer-events-none"
-          style={{
-            width: `calc(${VIEWPORT_OFFSET})`,
-            background: leftTexture,
-          }}
-        />
-        <PokedexTopBar leftInset={VIEWPORT_OFFSET} />
+    <div className="bg-card text-card-foreground rounded-2xl shadow-lg border overflow-hidden relative">
+      <PokedexTopBar />
 
-        <div
-          className="py-8 pr-8 flex flex-col items-center relative"
-          style={{ paddingLeft: `calc(${VIEWPORT_OFFSET} + 2rem)` }}
-        >
+      <div className="py-8 px-8 flex flex-col items-center relative">
           <div className="relative w-full flex items-center justify-center h-[300px]">
             <div className="relative" style={{ width: SPRITE_BOX, height: SPRITE_BOX }}>
               <div
@@ -295,7 +263,6 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
               embedded
             />
           </div>
-        </div>
       </div>
     </div>
   );

@@ -143,7 +143,6 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               <PokemonShowcase
                 pokemonId={pokemon.id}
                 pokemonName={pokemon.name}
-                types={pokemon.types.map((t) => t.name)}
                 spritesVersions={pokemon.spritesVersions}
               />
               <BreedingInfo pokemonId={pokemon.id} />
