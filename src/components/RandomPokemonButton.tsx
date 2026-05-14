@@ -17,10 +17,11 @@ export default function RandomPokemonButton({ maxId }: RandomPokemonButtonProps)
   };
 
   return (
-    <Button 
-      variant="outline" 
-      size="icon" 
-      className="rounded-full"
+    <Button
+      variant="outline"
+      size="icon"
+      aria-label="Random Pokémon"
+      className="h-11 w-11 rounded-full shrink-0"
       onClick={handleRandomPokemon}
     >
       <ShuffleIcon className="h-4 w-4" />

@@ -67,14 +67,12 @@ export default function Home() {
               <div className="flex items-center justify-center">
                 <Title onDimensions={setTitleDimensions} />
               </div>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center gap-3">
                 <SearchBar />
+                <RandomPokemonButton maxId={1025} />
               </div>
               <div className="flex items-center justify-center">
                 <GenerationButtons activeGeneration={null}/>
-              </div>
-              <div className="flex items-center justify-center gap-4">
-                <RandomPokemonButton maxId={1025} />
               </div>
             </motion.div>
           </div>

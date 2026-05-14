@@ -1,4 +1,8 @@
+'use client';
+
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 
@@ -8,6 +12,34 @@ interface Props {
 }
 
 export default function PokemonNavRails({ prevId, nextId }: Props) {
+  const router = useRouter();
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      // Don't hijack arrows while user is typing or has a modifier held
+      // (Cmd/Ctrl+Arrow = browser back/forward).
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (
+          tag === 'INPUT' ||
+          tag === 'TEXTAREA' ||
+          tag === 'SELECT' ||
+          target.isContentEditable
+        ) {
+          return;
+        }
+      }
+
+      router.push(`/pokemon/${e.key === 'ArrowLeft' ? prevId : nextId}`);
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [prevId, nextId, router]);
+
   return (
     <>
       <Link
