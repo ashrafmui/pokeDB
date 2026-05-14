@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon } from '@radix-ui/react-icons';
+import { ArrowLeftIcon } from '@radix-ui/react-icons';
 import RandomPokemonButton from '@/components/RandomPokemonButton';
 import { getTypeRelations } from '@/lib/typeUtils';
 
@@ -19,8 +19,6 @@ interface PokemonHeaderProps {
   pokemonName: string;
   sprite: string;
   types: Type[];
-  prevId: number;
-  nextId: number;
   maxId: number;
 }
 
@@ -137,7 +135,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
   );
 }
 
-export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, prevId, nextId, maxId }: PokemonHeaderProps) {
+export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, maxId }: PokemonHeaderProps) {
   return (
     <div className="flex items-center">
       {/* Left - Back & Random */}
@@ -150,49 +148,38 @@ export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, p
         <RandomPokemonButton maxId={maxId} />
       </div>
 
-      {/* Center Content with Nav */}
+      {/* Center Content */}
       <div className="flex-1 flex items-center justify-center gap-4">
-        <Link href={`/pokemon/${prevId}`}>
-          <Button variant="outline" size="icon" className="rounded-full">
-            <ChevronLeftIcon className="h-5 w-5" />
-          </Button>
-        </Link>
+        <div className="w-[640px] flex items-center justify-center gap-4 shrink-0">
+          {/* Pokemon Number */}
+          <span className="text-muted-foreground text-lg font-medium shrink-0">
+            #{pokemonId.toString().padStart(3, '0')}
+          </span>
 
-        {/* Pokemon Number */}
-        <span className="text-muted-foreground text-lg font-medium">
-          #{pokemonId.toString().padStart(3, '0')}
-        </span>
+          {/* Pokemon Sprite */}
+          <div className="relative w-[60px] h-[60px] rounded-2xl flex items-center justify-center shrink-0">
+            <Image
+              src={sprite}
+              alt={pokemonName}
+              width={60}
+              height={60}
+              unoptimized
+              className="object-contain max-w-full max-h-full"
+            />
+          </div>
 
-        {/* Pokemon Sprite */}
-        {/* Pokemon Sprite */}
-        <div className="relative w-[60px] h-[60px] rounded-2xl flex items-center justify-center shrink-0">
-          <Image
-            src={sprite}
-            alt={pokemonName}
-            width={60}
-            height={60}
-            unoptimized
-            className="object-contain max-w-full max-h-full"
-          />
+          {/* Name — truncates if it would otherwise overflow the cluster */}
+          <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none min-w-0 max-w-[360px] truncate">
+            {pokemonName}
+          </h1>
+
+          {/* Types */}
+          <div className="flex gap-3 items-center shrink-0">
+            {types.map((type) => (
+              <TypeIcon key={type.id} typeName={type.name} />
+            ))}
+          </div>
         </div>
-        
-        {/* Name */}
-        <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none">
-          {pokemonName}
-        </h1>
-
-        {/* Types */}
-        <div className="flex gap-3 items-center">
-          {types.map((type) => (
-            <TypeIcon key={type.id} typeName={type.name} />
-          ))}
-        </div>
-
-        <Link href={`/pokemon/${nextId}`}>
-          <Button variant="outline" size="icon" className="rounded-full">
-            <ChevronRightIcon className="h-5 w-5" />
-          </Button>
-        </Link>
       </div>
     </div>
   );

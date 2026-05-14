@@ -3,6 +3,7 @@ import PokedexEntrySelector from '@/components/PokedexEntrySelector';
 import PokemonShowcase from '@/components/PokemonShowcase';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
+import PokemonNavRails from '@/components/PokemonNavRails';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
@@ -124,6 +125,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <BackgroundGradient />
+      <PokemonNavRails prevId={prevId} nextId={nextId} />
       <div className="relative z-10 min-h-screen p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -132,8 +134,6 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               pokemonName={pokemon.name}
               sprite={pokemon.sprite}
               types={pokemon.types}
-              prevId={prevId}
-              nextId={nextId}
               maxId={MAX_POKEMON_ID}
             />
           </div>
