@@ -49,9 +49,10 @@ export default function PokedexTopBar({ leftInset, className = '' }: Props) {
         }}
       />
 
-      {/* Concave corner — inverted border-radius trick:
-          a red box at the step filled with a white div that has
-          border-top-left-radius, carving the concave curve. */}
+      {/* Diagonal corner — red right-triangle clipped from a rectangle.
+          Hypotenuse runs from the bump's top-right (where the banner ends)
+          down to the bottom-right of the corner box, giving the bump a
+          slanted lower-right edge. */}
       <div
         className="absolute bg-[#DC0A2D]"
         style={{
@@ -59,14 +60,13 @@ export default function PokedexTopBar({ leftInset, className = '' }: Props) {
           top: `${BANNER_HEIGHT}px`,
           width: `${CURVE_SIZE}px`,
           height: `${BUMP_HEIGHT - BANNER_HEIGHT}px`,
+          clipPath: 'polygon(0 0, 100% 0, 0 100%)',
         }}
-      >
-        <div className="w-full h-full rounded-tl-[24px] bg-white" />
-      </div>
+      />
 
       {/* ── Lens ───────────────────────────────────────────────────── */}
       <div
-        className="absolute top-0 left-0 flex items-center justify-center z-10"
+        className="absolute top-0 left-0 flex items-center justify-end pr-2 z-10"
         style={{
           width: bumpWidth,
           height: `${BUMP_HEIGHT}px`,

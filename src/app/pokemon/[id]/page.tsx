@@ -3,8 +3,6 @@ import PokedexEntrySelector from '@/components/PokedexEntrySelector';
 import PokemonShowcase from '@/components/PokemonShowcase';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
-import EvolutionChain from '@/components/EvolutionChain';
-import PokemonFormVariants from '@/components/PokemonFormVariants';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
@@ -147,11 +145,6 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
                 pokemonName={pokemon.name}
                 types={pokemon.types.map((t) => t.name)}
                 spritesVersions={pokemon.spritesVersions}
-              />
-              <EvolutionChain pokemonId={pokemon.id} />
-              <PokemonFormVariants
-                pokemonId={pokemon.id}
-                pokemonName={pokemon.name}
               />
               <BreedingInfo pokemonId={pokemon.id} />
               <PokemonLocations pokemonId={pokemon.id} />

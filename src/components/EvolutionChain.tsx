@@ -148,6 +148,15 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
   const spriteSize = embedded ? 36 : 64;
   const bubbleSize = embedded ? 'w-12 h-12' : 'w-20 h-20';
 
+  if (
+    !isLoading &&
+    !error &&
+    evolutionStages.length === 1 &&
+    evolutionStages[0].length === 1
+  ) {
+    return null;
+  }
+
   let body: ReactNode;
 
   if (isLoading) {
@@ -162,12 +171,6 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
     body = (
       <p className="text-sm text-muted-foreground text-center italic">
         No evolution data available
-      </p>
-    );
-  } else if (evolutionStages.length === 1 && evolutionStages[0].length === 1) {
-    body = (
-      <p className="text-sm text-muted-foreground text-center italic">
-        This Pokémon does not evolve
       </p>
     );
   } else {

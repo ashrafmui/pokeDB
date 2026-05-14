@@ -1,9 +1,39 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { StarFilledIcon } from '@radix-ui/react-icons';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Sparkles } from 'lucide-react';
 import { getTypeColors } from '@/lib/typeBackgrounds';
+
+type FormType = 'mega' | 'mega-x' | 'mega-y' | 'gmax';
+
+interface FormVariant {
+  type: FormType;
+  iconUrl: string;
+  artworkUrl: string;
+  shinyArtworkUrl: string | null;
+  label: string;
+}
+
+const FORM_ICONS: Record<FormType, string> = {
+  mega: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
+  'mega-x': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
+  'mega-y': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
+  gmax: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/gigantamax-icon.png',
+};
+
+const FORM_CHECKS: { type: FormType; suffix: string; label: string }[] = [
+  { type: 'mega', suffix: '-mega', label: 'Mega' },
+  { type: 'mega-x', suffix: '-mega-x', label: 'Mega X' },
+  { type: 'mega-y', suffix: '-mega-y', label: 'Mega Y' },
+  { type: 'gmax', suffix: '-gmax', label: 'Gigantamax' },
+];
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import PokedexTopBar from '@/components/PokedexTopBar';
 import EvolutionChain from '@/components/EvolutionChain';
@@ -23,6 +53,43 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
   const [isShiny, setIsShiny] = useState(false);
   const [shinyFailed, setShinyFailed] = useState(false);
   const [regularFailed, setRegularFailed] = useState(false);
+  const [availableForms, setAvailableForms] = useState<FormVariant[]>([]);
+  const [selectedForm, setSelectedForm] = useState<FormType | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchForms() {
+      const results = await Promise.all(
+        FORM_CHECKS.map(async (check): Promise<FormVariant | null> => {
+          try {
+            const res = await fetch(
+              `https://pokeapi.co/api/v2/pokemon/${pokemonName}${check.suffix}`
+            );
+            if (!res.ok) return null;
+            const data = await res.json();
+            const artwork = data.sprites?.other?.['official-artwork']?.front_default;
+            if (!artwork) return null;
+            return {
+              type: check.type,
+              iconUrl: FORM_ICONS[check.type],
+              artworkUrl: artwork,
+              shinyArtworkUrl:
+                data.sprites?.other?.['official-artwork']?.front_shiny ?? null,
+              label: check.label,
+            };
+          } catch {
+            return null;
+          }
+        })
+      );
+      if (cancelled) return;
+      setAvailableForms(results.filter((r): r is FormVariant => r !== null));
+    }
+    fetchForms();
+    return () => {
+      cancelled = true;
+    };
+  }, [pokemonName]);
 
   // Distance from viewport-left to the card's natural left edge, derived from
   // the page wrapper. Used to extend the card to the viewport edge without a
@@ -95,7 +162,16 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
   }
 
   const showShiny = isShiny && !shinyFailed;
-  const currentSrc = showShiny ? shinySrc : regularSrc;
+  const activeForm = selectedForm
+    ? availableForms.find((f) => f.type === selectedForm) ?? null
+    : null;
+  const currentSrc = activeForm
+    ? (showShiny && activeForm.shinyArtworkUrl
+        ? activeForm.shinyArtworkUrl
+        : activeForm.artworkUrl)
+    : showShiny
+      ? shinySrc
+      : regularSrc;
   const currentLabel = showShiny ? 'Official Artwork (Shiny)' : 'Official Artwork';
 
   const [primary, secondary = '#FFFFFF'] = getTypeColors(types);
@@ -151,23 +227,65 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
               />
             </div>
 
+            <div className="absolute inset-y-0 left-0 flex items-center">
+              <TooltipProvider delayDuration={150}>
+                <div className="flex flex-col gap-2">
+                  {!shinyFailed && !regularFailed && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={showShiny ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => setIsShiny((prev) => !prev)}
+                          aria-pressed={showShiny}
+                          aria-label={showShiny ? 'Show normal sprite' : 'Show shiny sprite'}
+                        >
+                          <Sparkles />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        {showShiny ? 'Switch to normal sprite' : 'Switch to shiny sprite'}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+
+                  {availableForms.map((form) => {
+                    const isActive = selectedForm === form.type;
+                    return (
+                      <Tooltip key={form.type}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={isActive ? 'default' : 'outline'}
+                            size="icon"
+                            onClick={() =>
+                              setSelectedForm((prev) => (prev === form.type ? null : form.type))
+                            }
+                            aria-pressed={isActive}
+                            aria-label={`Show ${form.label} form`}
+                          >
+                            <img
+                              src={form.iconUrl}
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="object-contain"
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          {isActive ? `Hide ${form.label} form` : `View ${form.label} form`}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </TooltipProvider>
+            </div>
+
             <div className="absolute inset-y-0 right-0 flex items-center">
               <EvolutionChain pokemonId={pokemonId} embedded />
             </div>
           </div>
-
-          {!shinyFailed && !regularFailed && (
-            <Button
-              variant={showShiny ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setIsShiny((prev) => !prev)}
-              className="mt-3"
-              aria-pressed={showShiny}
-            >
-              <StarFilledIcon className="h-4 w-4 mr-1.5" />
-              Shiny
-            </Button>
-          )}
 
           <div className="mt-6 w-full">
             <PokemonSpriteVariants
