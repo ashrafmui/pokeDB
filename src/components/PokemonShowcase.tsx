@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AnimatedCollapsibleContent, Collapsible, CollapseToggle, useCollapsible } from '@/components/ui/collapsible';
 import { StarFilledIcon } from '@radix-ui/react-icons';
 import { getTypeColors } from '@/lib/typeBackgrounds';
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import PokedexTopBar from '@/components/PokedexTopBar';
+import EvolutionChain from '@/components/EvolutionChain';
 
 
 interface Props {
@@ -23,7 +23,6 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
   const [isShiny, setIsShiny] = useState(false);
   const [shinyFailed, setShinyFailed] = useState(false);
   const [regularFailed, setRegularFailed] = useState(false);
-  const { isOpen, toggle, setIsOpen } = useCollapsible(true);
 
   // Distance from viewport-left to the card's natural left edge, derived from
   // the page wrapper. Used to extend the card to the viewport edge without a
@@ -103,7 +102,6 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
   const leftTexture = `conic-gradient(${primary} 25%, ${secondary} 0 50%, ${primary} 0 75%, ${secondary} 0) 0 0 / 24px 24px`;
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
     <div>
       <div
         style={{
@@ -125,13 +123,6 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
         />
         <PokedexTopBar leftInset={VIEWPORT_OFFSET} />
 
-        <CollapseToggle
-          isOpen={isOpen}
-          onToggle={toggle}
-          className="absolute top-3 right-3 z-30"
-        />
-
-        <AnimatedCollapsibleContent>
         <div
           className="py-8 pr-8 flex flex-col items-center relative"
           style={{ paddingLeft: `calc(${VIEWPORT_OFFSET} + 2rem)` }}
@@ -159,11 +150,11 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
                 onError={() => (showShiny ? setShinyFailed(true) : setRegularFailed(true))}
               />
             </div>
-          </div>
 
-          <p className="mt-4 text-sm font-pokemon-gb text-muted-foreground">
-            {currentLabel}
-          </p>
+            <div className="absolute inset-y-0 right-0 flex items-center">
+              <EvolutionChain pokemonId={pokemonId} embedded />
+            </div>
+          </div>
 
           {!shinyFailed && !regularFailed && (
             <Button
@@ -187,9 +178,7 @@ export default function PokemonShowcase({ pokemonId, pokemonName, types, sprites
             />
           </div>
         </div>
-        </AnimatedCollapsibleContent>
       </div>
     </div>
-    </Collapsible>
   );
 }

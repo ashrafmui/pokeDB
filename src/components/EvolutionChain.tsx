@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { ArrowDownIcon, ArrowRightIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
 
 interface EvolutionDetail {
@@ -37,6 +37,7 @@ interface PokemonEvolution {
 
 interface EvolutionChainProps {
   pokemonId: number;
+  embedded?: boolean;
 }
 
 function getEvolutionTriggerText(details: EvolutionDetail): string {
@@ -112,7 +113,7 @@ async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution
   return stages;
 }
 
-export default function EvolutionChain({ pokemonId }: EvolutionChainProps) {
+export default function EvolutionChain({ pokemonId, embedded = false }: EvolutionChainProps) {
   const [evolutionStages, setEvolutionStages] = useState<PokemonEvolution[][]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -144,50 +145,98 @@ export default function EvolutionChain({ pokemonId }: EvolutionChainProps) {
     fetchEvolutionChain();
   }, [pokemonId]);
 
+  const spriteSize = embedded ? 36 : 64;
+  const bubbleSize = embedded ? 'w-12 h-12' : 'w-20 h-20';
+
+  let body: ReactNode;
+
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center gap-4">
-            <Skeleton className="w-20 h-20 rounded-full" />
-            <Skeleton className="w-6 h-6" />
-            <Skeleton className="w-20 h-20 rounded-full" />
+    body = (
+      <div className={cn('flex items-center justify-center gap-4', embedded && 'flex-col gap-2')}>
+        <Skeleton className={cn('rounded-full', bubbleSize)} />
+        <Skeleton className="w-6 h-6" />
+        <Skeleton className={cn('rounded-full', bubbleSize)} />
+      </div>
+    );
+  } else if (error || evolutionStages.length === 0) {
+    body = (
+      <p className="text-sm text-muted-foreground text-center italic">
+        No evolution data available
+      </p>
+    );
+  } else if (evolutionStages.length === 1 && evolutionStages[0].length === 1) {
+    body = (
+      <p className="text-sm text-muted-foreground text-center italic">
+        This Pokémon does not evolve
+      </p>
+    );
+  } else {
+    const Arrow = embedded ? ArrowDownIcon : ArrowRightIcon;
+    body = (
+      <div className={cn(
+        'flex items-center justify-center',
+        embedded ? 'flex-col gap-0.5' : 'gap-2 flex-wrap'
+      )}>
+        {evolutionStages.map((stage, stageIndex) => (
+          <div key={stageIndex} className={cn(
+            'flex items-center',
+            embedded ? 'flex-col gap-0.5' : 'gap-2'
+          )}>
+            {stageIndex > 0 && (
+              <Arrow className={cn('text-muted-foreground', embedded ? 'h-3 w-3' : 'h-5 w-5')} />
+            )}
+
+            <div className={cn('flex flex-col', embedded ? 'gap-0.5' : 'gap-2')}>
+              {stage.map((pokemon) => (
+                <Link
+                  key={pokemon.id}
+                  href={`/pokemon/${pokemon.id}`}
+                  className="group"
+                >
+                  <div className="text-center">
+                    <div className={cn(
+                      'bg-muted rounded-full flex items-center justify-center',
+                      bubbleSize,
+                      embedded ? '' : 'mb-1',
+                      'transition-all group-hover:bg-muted/80 group-hover:scale-110',
+                      pokemon.id === pokemonId && 'ring-2 ring-primary ring-offset-2'
+                    )}>
+                      <Image
+                        src={pokemon.sprite}
+                        alt={pokemon.name}
+                        width={spriteSize}
+                        height={spriteSize}
+                        className="object-contain"
+                        style={{ imageRendering: 'pixelated' }}
+                        unoptimized
+                      />
+                    </div>
+                    {!embedded && pokemon.trigger && (
+                      <p className="text-[10px] text-muted-foreground capitalize mb-1">
+                        {pokemon.trigger}
+                      </p>
+                    )}
+                    <p className={cn(
+                      'capitalize group-hover:text-primary transition-colors text-foreground leading-tight',
+                      embedded ? 'text-[10px]' : 'text-sm'
+                    )}>
+                      {pokemon.name.replace(/-/g, ' ')}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     );
   }
 
-  if (error || evolutionStages.length === 0) {
+  if (embedded) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center italic">
-            No evolution data available
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (evolutionStages.length === 1 && evolutionStages[0].length === 1) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center italic">
-            This Pokémon does not evolve
-          </p>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center">
+        {body}
+      </div>
     );
   }
 
@@ -196,53 +245,7 @@ export default function EvolutionChain({ pokemonId }: EvolutionChainProps) {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold">Evolution</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {evolutionStages.map((stage, stageIndex) => (
-            <div key={stageIndex} className="flex items-center gap-2">
-              {stageIndex > 0 && (
-                <ArrowRightIcon className="h-5 w-5 text-muted-foreground" />
-              )}
-              
-              <div className="flex flex-col gap-2">
-                {stage.map((pokemon) => (
-                  <Link 
-                    key={pokemon.id} 
-                    href={`/pokemon/${pokemon.id}`}
-                    className="group"
-                  >
-                    <div className="text-center">
-                      <div className={cn(
-                        "w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-1",
-                        "transition-all group-hover:bg-muted/80 group-hover:scale-110",
-                        pokemon.id === pokemonId && "ring-2 ring-primary ring-offset-2"
-                      )}>
-                        <Image
-                          src={pokemon.sprite}
-                          alt={pokemon.name}
-                          width={64}
-                          height={64}
-                          className="object-contain"
-                          style={{ imageRendering: 'pixelated' }}
-                          unoptimized
-                        />
-                      </div>
-                      {pokemon.trigger && (
-                        <p className="text-[10px] text-muted-foreground capitalize mb-1">
-                          {pokemon.trigger}
-                        </p>
-                      )}
-                      <p className="text-sm text-foreground capitalize group-hover:text-primary transition-colors">
-                        {pokemon.name.replace(/-/g, ' ')}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
+      <CardContent>{body}</CardContent>
     </Card>
   );
 }
