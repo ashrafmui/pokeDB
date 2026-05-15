@@ -5,7 +5,8 @@ import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
 import PokemonNavRails from '@/components/PokemonNavRails';
 import PokemonSectionNav from '@/components/PokemonSectionNav';
-import { Globe, Info, Swords } from 'lucide-react';
+import TradingCards from '@/components/TradingCards';
+import { Globe, Info, Layers, Swords } from 'lucide-react';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
@@ -198,6 +199,17 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
             <div className="space-y-6">
               <PokemonLocations pokemonId={pokemon.id} />
             </div>
+          </section>
+
+          {/* ───────── Trading Cards ───────── */}
+          <section id="cards" className="scroll-mt-8 mb-16">
+            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                <Layers className="h-5 w-5" />
+              </span>
+              Trading Cards
+            </h2>
+            <TradingCards pokemonName={pokemon.name} />
           </section>
         </div>
       </div>

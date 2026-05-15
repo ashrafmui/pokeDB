@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Globe, Info, Swords } from 'lucide-react';
+import { Globe, Info, Layers, Swords } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const SECTIONS = [
   { id: 'about', label: 'About', Icon: Info, accent: 'text-blue-500' },
   { id: 'combat', label: 'Combat', Icon: Swords, accent: 'text-red-500' },
   { id: 'world', label: 'World', Icon: Globe, accent: 'text-emerald-500' },
+  { id: 'cards', label: 'Cards', Icon: Layers, accent: 'text-amber-500' },
 ] as const;
 
 export default function PokemonSectionNav() {
