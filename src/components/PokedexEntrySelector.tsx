@@ -114,17 +114,17 @@ export default function PokedexEntrySelector({ entries }: Props) {
           className="absolute top-[14px] right-3 z-50"
         />
         <div
-          className={`absolute inset-x-0 top-0 bg-white rounded-2xl shadow-xl border-2 ${activeColors.border} px-6 py-3 transition-opacity duration-150 ${
+          className={`absolute inset-x-0 top-0 ${activeColors.bg} rounded-2xl shadow-xl border-2 ${activeColors.border} px-6 py-3 transition-opacity duration-150 ${
             isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 delay-100'
           }`}
         >
-          <span className="font-pocket-monk text-sm text-black">Pokédex Entry</span>
+          <span className="font-pocket-monk text-sm text-white">Pokédex Entry</span>
         </div>
         <AnimatedCollapsibleContent>
     <div className="relative h-[180px]">
       {/* Main card */}
       <div
-        className={`absolute left-0 right-0 rounded-t-2xl overflow-hidden transition-all duration-150 ease-out bg-white border-2 ${activeColors.border}`}
+        className={`absolute left-0 right-0 rounded-t-2xl overflow-hidden transition-all duration-150 ease-out ${activeColors.bg} border-2 ${activeColors.border}`}
         style={{
           bottom: '38px',
           height: isAnimating ? '0px' : '140px',
@@ -133,12 +133,12 @@ export default function PokedexEntrySelector({ entries }: Props) {
         }}
       >
         {getGenerationRoman(selectedVersion) && (
-          <div className="absolute top-[26px] right-6 font-pocket-monk text-xl text-black opacity-75 leading-none">
+          <div className="absolute top-[26px] right-6 font-pocket-monk text-xl text-white opacity-75 leading-none">
             {getGenerationRoman(selectedVersion)}
           </div>
         )}
         <div className="h-24 overflow-y-auto pr-44">
-          <p className="font-pokemon-gb text-xs text-black leading-relaxed">
+          <p className="font-pokemon-gb text-xs text-white leading-relaxed">
             {displayedEntry?.description || 'No description available'}
           </p>
         </div>

@@ -36,15 +36,23 @@ const FORM_CHECKS: { type: FormType; suffix: string; label: string }[] = [
 import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import PokedexTopBar from '@/components/PokedexTopBar';
 import EvolutionChain from '@/components/EvolutionChain';
+import { BACKGROUND_VARIANTS } from '@/components/PokemonBackgrounds';
+import { typeColors } from '@/components/PokemonTypes';
 
 
 interface Props {
   pokemonId: number;
   pokemonName: string;
+  types: string[];
   spritesVersions: Record<string, unknown>;
 }
 
-export default function PokemonShowcase({ pokemonId, pokemonName, spritesVersions }: Props) {
+export default function PokemonShowcase({
+  pokemonId,
+  pokemonName,
+  types,
+  spritesVersions,
+}: Props) {
   const regularSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
   const shinySrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png`;
 
@@ -53,6 +61,11 @@ export default function PokemonShowcase({ pokemonId, pokemonName, spritesVersion
   const [regularFailed, setRegularFailed] = useState(false);
   const [availableForms, setAvailableForms] = useState<FormVariant[]>([]);
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null);
+  const [backgroundIndex, setBackgroundIndex] = useState(0);
+  const backgroundColor = typeColors[types[0]] ?? '#9ca3af';
+  const ActiveBackground = BACKGROUND_VARIANTS[backgroundIndex].Component;
+  const cycleBackground = () =>
+    setBackgroundIndex((i) => (i + 1) % BACKGROUND_VARIANTS.length);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,11 +181,33 @@ export default function PokemonShowcase({ pokemonId, pokemonName, spritesVersion
 
   return (
     <div className="bg-card text-card-foreground rounded-2xl shadow-lg border overflow-hidden relative">
+      {/* Type-themed background — sits behind every other layer of the card. */}
+      <div className="absolute inset-0 pointer-events-none z-0" aria-hidden>
+        <ActiveBackground color={backgroundColor} className="w-full h-full" />
+      </div>
+
+      {/* Cycler — top-right of the card, on top of the background. */}
+      <button
+        type="button"
+        onClick={cycleBackground}
+        aria-label={`Switch background (currently ${BACKGROUND_VARIANTS[backgroundIndex].label})`}
+        className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-2 py-1 text-[10px] font-medium text-muted-foreground shadow-sm hover:bg-background transition-colors"
+      >
+        {BACKGROUND_VARIANTS.map((v, i) => (
+          <span
+            key={v.id}
+            className={`h-1.5 w-1.5 rounded-full transition-colors ${
+              i === backgroundIndex ? 'bg-foreground' : 'bg-muted-foreground/30'
+            }`}
+          />
+        ))}
+      </button>
+
       <PokedexTopBar />
 
-      <div className="py-8 px-8 flex flex-col items-center relative">
+      <div className="py-8 px-8 flex flex-col items-center relative z-10">
           <div className="relative w-full flex items-center justify-center h-[300px]">
-            <div className="relative" style={{ width: SPRITE_BOX, height: SPRITE_BOX }}>
+            <div className="relative z-10" style={{ width: SPRITE_BOX, height: SPRITE_BOX }}>
               <div
                 aria-hidden
                 className="absolute rounded-[50%] bg-gray-500/30 blur-sm"
