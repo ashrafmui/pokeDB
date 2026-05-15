@@ -4,6 +4,8 @@ import PokemonShowcase from '@/components/PokemonShowcase';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
 import PokemonNavRails from '@/components/PokemonNavRails';
+import PokemonSectionNav from '@/components/PokemonSectionNav';
+import { Globe, Info, Swords } from 'lucide-react';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
@@ -126,6 +128,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
     <>
       <BackgroundGradient />
       <PokemonNavRails prevId={prevId} nextId={nextId} />
+      <PokemonSectionNav />
       <div className="relative z-10 min-h-screen p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -138,32 +141,64 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <PokemonShowcase
-                pokemonId={pokemon.id}
-                pokemonName={pokemon.name}
-                spritesVersions={pokemon.spritesVersions}
-              />
-              <BreedingInfo pokemonId={pokemon.id} />
-              <PokemonLocations pokemonId={pokemon.id} />
-            </div>
+          <div className="mb-12">
+            <PokemonShowcase
+              pokemonId={pokemon.id}
+              pokemonName={pokemon.name}
+              spritesVersions={pokemon.spritesVersions}
+            />
+          </div>
 
+          {/* ───────── About ───────── */}
+          <section id="about" className="scroll-mt-8 mb-16">
+            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <Info className="h-5 w-5" />
+              </span>
+              About
+            </h2>
             <div className="space-y-6">
               <PokedexEntrySelector entries={pokemon.pokedexEntries} />
-              <PokemonAbilities pokemonId={pokemon.id} />
-              <PokemonSpeciesCard pokemonId={pokemon.id} />
-              <TypeEffectiveness types={pokemon.types} />
-              <BaseStats
-                stats={pokemon.stats}
-                pokemonName={pokemon.name}
-              />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <PokemonSpeciesCard pokemonId={pokemon.id} />
+                <BreedingInfo pokemonId={pokemon.id} />
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div className="mt-8">
-            <PokemonMoves pokemonId={pokemon.id} />
-          </div>
+          {/* ───────── Combat ───────── */}
+          <section id="combat" className="scroll-mt-8 mb-16">
+            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600">
+                <Swords className="h-5 w-5" />
+              </span>
+              Combat
+            </h2>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <BaseStats
+                  stats={pokemon.stats}
+                  pokemonName={pokemon.name}
+                />
+                <TypeEffectiveness types={pokemon.types} />
+                <PokemonAbilities pokemonId={pokemon.id} />
+              </div>
+              <PokemonMoves pokemonId={pokemon.id} />
+            </div>
+          </section>
+
+          {/* ───────── In the World ───────── */}
+          <section id="world" className="scroll-mt-8 mb-16">
+            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <Globe className="h-5 w-5" />
+              </span>
+              In the World
+            </h2>
+            <div className="space-y-6">
+              <PokemonLocations pokemonId={pokemon.id} />
+            </div>
+          </section>
         </div>
       </div>
     </>

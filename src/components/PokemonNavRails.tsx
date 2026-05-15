@@ -45,7 +45,7 @@ export default function PokemonNavRails({ prevId, nextId }: Props) {
       <Link
         href={`/pokemon/${prevId}`}
         aria-label="Previous Pokémon"
-        className="fixed left-4 top-1/2 -translate-y-1/2 z-30 hidden md:block"
+        className="fixed left-4 bottom-20 z-30 hidden md:block"
       >
         <Button
           variant="outline"
@@ -58,7 +58,7 @@ export default function PokemonNavRails({ prevId, nextId }: Props) {
       <Link
         href={`/pokemon/${nextId}`}
         aria-label="Next Pokémon"
-        className="fixed right-4 top-1/2 -translate-y-1/2 z-30 hidden md:block"
+        className="fixed right-4 bottom-20 z-30 hidden md:block"
       >
         <Button
           variant="outline"
