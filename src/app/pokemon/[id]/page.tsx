@@ -176,14 +176,14 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               </span>
               Combat
             </h2>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="space-y-6 space-x-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
+                <PokemonAbilities pokemonId={pokemon.id} />
                 <BaseStats
                   stats={pokemon.stats}
                   pokemonName={pokemon.name}
                 />
                 <TypeEffectiveness types={pokemon.types} />
-                <PokemonAbilities pokemonId={pokemon.id} />
               </div>
               <PokemonMoves pokemonId={pokemon.id} />
             </div>

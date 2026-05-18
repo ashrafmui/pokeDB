@@ -74,7 +74,6 @@ function StatsRadarChart({ data, pokemonName }: { data: RadarDataPoint[]; pokemo
           fillOpacity={0.4}
           strokeWidth={2}
         />
-        <Legend />
         <Tooltip
           contentStyle={{
             backgroundColor: 'hsl(var(--card))',

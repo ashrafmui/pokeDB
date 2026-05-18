@@ -11,11 +11,19 @@ import RandomPokemonButton from '@/components/RandomPokemonButton';
 import RandomPokemonOfTheDay from '@/components/RandomPokemonOfTheDay';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
+import { RotateCcw } from 'lucide-react';
+import Image from 'next/image';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-// localStorage key flipped to "true" once the user has seen the pokeball
-// intro at least once. Subsequent visits skip it. Bump the `-vN` suffix to
-// invalidate every existing user's cached flag (forces the intro to play
-// once more on their next visit).
+// sessionStorage key flipped to "true" once the user has seen the pokeball
+// intro in the current browser session. The flag clears when the tab/session
+// ends, so the intro replays on a fresh visit but is skipped during in-site
+// navigation. Bump the `-vN` suffix to invalidate the cached flag.
 const INTRO_SEEN_KEY = 'pokedb:intro-seen-v2';
 
 export default function Home() {
@@ -24,23 +32,38 @@ export default function Home() {
   const [pokeballYOffset, setPokeballYOffset] = useState<number | null>(null);
   // null = unresolved (initial render / SSR), false = first visit, true = returning.
   const [hasSeenIntro, setHasSeenIntro] = useState<boolean | null>(null);
+  // Bumped on each replay-button press so the AnimatedPokeball remounts and
+  // motion replays the intro from its initial state.
+  const [replayKey, setReplayKey] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePokeballComplete = useCallback(() => {
     setPokeballDone(true);
     try {
-      localStorage.setItem(INTRO_SEEN_KEY, 'true');
+      sessionStorage.setItem(INTRO_SEEN_KEY, 'true');
     } catch {
-      // localStorage may be unavailable (private mode, quota); fail silently.
+      // sessionStorage may be unavailable (private mode, quota); fail silently.
     }
   }, []);
 
-  // Resolve the intro-seen flag from localStorage after hydration. Returning
-  // visitors skip the pokeball entirely and reveal content immediately.
+  const handleReplayIntro = useCallback(() => {
+    try {
+      sessionStorage.removeItem(INTRO_SEEN_KEY);
+    } catch {
+      // ignore
+    }
+    setPokeballDone(false);
+    setHasSeenIntro(false);
+    setReplayKey((k) => k + 1);
+  }, []);
+
+  // Resolve the intro-seen flag from sessionStorage after hydration. Visitors
+  // who saw the intro earlier in this session skip the pokeball and reveal
+  // content immediately; a closed tab resets the flag.
   useEffect(() => {
     let seen = false;
     try {
-      seen = localStorage.getItem(INTRO_SEEN_KEY) === 'true';
+      seen = sessionStorage.getItem(INTRO_SEEN_KEY) === 'true';
     } catch {
       // ignore
     }
@@ -76,8 +99,18 @@ export default function Home() {
             <div className="flex items-center justify-center">
               {hasSeenIntro === false && pokeballYOffset !== null && (
                 <AnimatedPokeball
+                  key={replayKey}
                   onAnimationComplete={handlePokeballComplete}
                   initialYOffset={pokeballYOffset}
+                />
+              )}
+              {hasSeenIntro === true && (
+                <Image
+                  src="/images/pokeball1.png"
+                  alt="poké ball"
+                  width={180}
+                  height={38}
+                  priority
                 />
               )}
             </div>
@@ -108,6 +141,24 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handleReplayIntro}
+              aria-label="Replay Intro Animation"
+              className="fixed bottom-16 left-4 z-50 p-2 rounded-full bg-white/80 backdrop-blur-sm text-gray-600 hover:text-gray-900 hover:bg-white shadow-sm transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            Replay Intro Animation
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <ClickHintModal />
       <Footer />
