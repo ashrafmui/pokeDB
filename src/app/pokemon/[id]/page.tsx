@@ -4,7 +4,7 @@ import PokemonShowcase from '@/components/PokemonShowcase';
 import BaseStats from '@/components/BaseStats';
 import PokemonHeader from '@/components/PokemonPageHeader';
 import PokemonNavRails from '@/components/PokemonNavRails';
-import PokemonSectionNav from '@/components/PokemonSectionNav';
+import PokemonTimelineSection from '@/components/PokemonTimelineSection';
 import TradingCards from '@/components/TradingCards';
 import { Globe, Info, Layers, Swords } from 'lucide-react';
 import PokemonLocations from '@/components/PokemonLocations';
@@ -129,7 +129,6 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
     <>
       <BackgroundGradient />
       <PokemonNavRails prevId={prevId} nextId={nextId} />
-      <PokemonSectionNav />
       <div className="relative z-10 min-h-screen p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -151,67 +150,58 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
             />
           </div>
 
-          {/* ───────── About ───────── */}
-          <section id="about" className="scroll-mt-8 mb-16">
-            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                <Info className="h-5 w-5" />
-              </span>
-              About
-            </h2>
-            <div className="space-y-6">
-              <PokedexEntrySelector entries={pokemon.pokedexEntries} />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <PokemonSpeciesCard pokemonId={pokemon.id} />
-                <BreedingInfo pokemonId={pokemon.id} />
-              </div>
+          <PokemonTimelineSection
+            id="about"
+            label="About"
+            Icon={Info}
+            iconBg="bg-blue-50"
+            iconColor="text-blue-600"
+          >
+            <PokedexEntrySelector entries={pokemon.pokedexEntries} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <PokemonSpeciesCard pokemonId={pokemon.id} />
+              <BreedingInfo pokemonId={pokemon.id} />
             </div>
-          </section>
+          </PokemonTimelineSection>
 
-          {/* ───────── Combat ───────── */}
-          <section id="combat" className="scroll-mt-8 mb-16">
-            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600">
-                <Swords className="h-5 w-5" />
-              </span>
-              Combat
-            </h2>
-            <div className="space-y-6 space-x-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
-                <PokemonAbilities pokemonId={pokemon.id} />
-                <BaseStats
-                  stats={pokemon.stats}
-                  pokemonName={pokemon.name}
-                />
-                <TypeEffectiveness types={pokemon.types} />
-              </div>
-              <PokemonMoves pokemonId={pokemon.id} />
+          <PokemonTimelineSection
+            id="combat"
+            label="Combat"
+            Icon={Swords}
+            iconBg="bg-red-50"
+            iconColor="text-red-600"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
+              <PokemonAbilities pokemonId={pokemon.id} />
+              <BaseStats
+                stats={pokemon.stats}
+                pokemonName={pokemon.name}
+              />
+              <TypeEffectiveness types={pokemon.types} />
             </div>
-          </section>
+            <PokemonMoves pokemonId={pokemon.id} />
+          </PokemonTimelineSection>
 
-          {/* ───────── In the World ───────── */}
-          <section id="world" className="scroll-mt-8 mb-16">
-            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                <Globe className="h-5 w-5" />
-              </span>
-              In the World
-            </h2>
-            <div className="space-y-6">
-              <PokemonLocations pokemonId={pokemon.id} />
-            </div>
-          </section>
+          <PokemonTimelineSection
+            id="world"
+            label="In the World"
+            Icon={Globe}
+            iconBg="bg-emerald-50"
+            iconColor="text-emerald-600"
+          >
+            <PokemonLocations pokemonId={pokemon.id} />
+          </PokemonTimelineSection>
 
-          {/* ───────── Trading Cards ───────── */}
-          <section id="cards" className="scroll-mt-8 mb-16">
-            <h2 className="flex items-center gap-3 text-2xl font-bold mb-6 pb-3 border-b">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                <Layers className="h-5 w-5" />
-              </span>
-              Trading Cards
-            </h2>
+          <PokemonTimelineSection
+            id="cards"
+            label="Trading Cards"
+            Icon={Layers}
+            iconBg="bg-amber-50"
+            iconColor="text-amber-600"
+            isLast
+          >
             <TradingCards pokemonName={pokemon.name} />
-          </section>
+          </PokemonTimelineSection>
         </div>
       </div>
     </>

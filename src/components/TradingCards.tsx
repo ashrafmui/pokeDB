@@ -135,9 +135,9 @@ export default function TradingCards({ pokemonName }: Props) {
                   priority
                 />
               </div>
-              <div className="text-center text-white">
+              <div className="text-center text-black">
                 <p className="text-base font-semibold">{selectedCard.name}</p>
-                <p className="text-xs text-white/80">
+                <p className="text-xs text-black/80">
                   {selectedCard.set.name}
                   {selectedCard.rarity ? ` · ${selectedCard.rarity}` : ''}
                 </p>
@@ -145,7 +145,7 @@ export default function TradingCards({ pokemonName }: Props) {
                   href={`https://pokemontcg.io/card/${selectedCard.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 inline-block text-xs underline text-white/90 hover:text-white"
+                  className="mt-2 inline-block text-xs underline text-black/90 hover:text-white"
                 >
                   View on pokemontcg.io
                 </a>
