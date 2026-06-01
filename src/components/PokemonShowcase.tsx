@@ -8,9 +8,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Sparkles } from 'lucide-react';
-
-type FormType = 'mega' | 'mega-x' | 'mega-y' | 'gmax';
+import { Images, Sparkles } from 'lucide-react';
+import { FORM_ICONS, officialArtworkUrl, type FormType } from '@/lib/sprites';
+import { pokemonUrl } from '@/lib/pokeApi';
 
 interface FormVariant {
   type: FormType;
@@ -19,13 +19,6 @@ interface FormVariant {
   shinyArtworkUrl: string | null;
   label: string;
 }
-
-const FORM_ICONS: Record<FormType, string> = {
-  mega: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
-  'mega-x': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
-  'mega-y': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
-  gmax: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/gigantamax-icon.png',
-};
 
 const FORM_CHECKS: { type: FormType; suffix: string; label: string }[] = [
   { type: 'mega', suffix: '-mega', label: 'Mega' },
@@ -37,7 +30,7 @@ import PokemonSpriteVariants from '@/components/PokemonSpriteVariants';
 import PokedexTopBar from '@/components/PokedexTopBar';
 import EvolutionChain from '@/components/EvolutionChain';
 import { BACKGROUND_VARIANTS } from '@/components/PokemonBackgrounds';
-import { typeColors } from '@/components/PokemonTypes';
+import { TYPE_COLORS } from '@/lib/typeColors';
 
 
 interface Props {
@@ -53,8 +46,8 @@ export default function PokemonShowcase({
   types,
   spritesVersions,
 }: Props) {
-  const regularSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
-  const shinySrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${pokemonId}.png`;
+  const regularSrc = officialArtworkUrl(pokemonId);
+  const shinySrc = officialArtworkUrl(pokemonId, true);
 
   const [isShiny, setIsShiny] = useState(false);
   const [shinyFailed, setShinyFailed] = useState(false);
@@ -62,7 +55,7 @@ export default function PokemonShowcase({
   const [availableForms, setAvailableForms] = useState<FormVariant[]>([]);
   const [selectedForm, setSelectedForm] = useState<FormType | null>(null);
   const [backgroundIndex, setBackgroundIndex] = useState(0);
-  const backgroundColor = typeColors[types[0]] ?? '#9ca3af';
+  const backgroundColor = TYPE_COLORS[types[0]] ?? '#9ca3af';
   const ActiveBackground = BACKGROUND_VARIANTS[backgroundIndex].Component;
   const cycleBackground = () =>
     setBackgroundIndex((i) => (i + 1) % BACKGROUND_VARIANTS.length);
@@ -73,9 +66,7 @@ export default function PokemonShowcase({
       const results = await Promise.all(
         FORM_CHECKS.map(async (check): Promise<FormVariant | null> => {
           try {
-            const res = await fetch(
-              `https://pokeapi.co/api/v2/pokemon/${pokemonName}${check.suffix}`
-            );
+            const res = await fetch(`${pokemonUrl(pokemonName)}${check.suffix}`);
             if (!res.ok) return null;
             const data = await res.json();
             const artwork = data.sprites?.other?.['official-artwork']?.front_default;
@@ -191,16 +182,9 @@ export default function PokemonShowcase({
         type="button"
         onClick={cycleBackground}
         aria-label={`Switch background (currently ${BACKGROUND_VARIANTS[backgroundIndex].label})`}
-        className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-2 py-1 text-[10px] font-medium text-muted-foreground shadow-sm hover:bg-background transition-colors"
+        className="absolute top-3 right-3 z-30 flex items-center justify-center rounded-full bg-background/80 backdrop-blur p-1.5 text-muted-foreground shadow-sm hover:bg-background hover:text-foreground transition-colors"
       >
-        {BACKGROUND_VARIANTS.map((v, i) => (
-          <span
-            key={v.id}
-            className={`h-1.5 w-1.5 rounded-full transition-colors ${
-              i === backgroundIndex ? 'bg-foreground' : 'bg-muted-foreground/30'
-            }`}
-          />
-        ))}
+        <Images className="h-4 w-4" />
       </button>
 
       <PokedexTopBar />

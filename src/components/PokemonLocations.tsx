@@ -14,6 +14,8 @@ import {
 } from '@/lib/locationUtils';
 import LocationListView from './LocationListView';
 import LocationMapView from './LocationMapView';
+import { pokemonUrl } from '@/lib/pokeApi';
+import { kebabToSpace } from '@/lib/formatters';
 
 interface EncounterDetail {
   min_level: number;
@@ -90,7 +92,7 @@ export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
       setError(null);
 
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}/encounters`);
+        const res = await fetch(`${pokemonUrl(pokemonId)}/encounters`);
         if (!res.ok) throw new Error('Failed to fetch encounters');
         
         const data: LocationArea[] = await res.json();
@@ -226,7 +228,7 @@ export default function PokemonLocations({ pokemonId }: PokemonLocationsProps) {
                   }`}
                   style={isSelected ? { backgroundColor: getComputedBgColor(colors.bg) } : {}}
                 >
-                  {game.game.replace(/-/g, ' ')}
+                  {kebabToSpace(game.game)}
                 </button>
               );
             })}

@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { pokemonUrl } from '@/lib/pokeApi';
+import { pickOfficialArtwork } from '@/lib/sprites';
+import { kebabToSpace, formatDexNumber } from '@/lib/formatters';
 
 const MAX_POKEMON_ID = 1025;
 
@@ -35,18 +38,16 @@ export default function RandomPokemonOfTheDay() {
 
   useEffect(() => {
     if (dailyId === null) return;
+    const id = dailyId;
     let cancelled = false;
 
     async function load() {
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${dailyId}`);
+        const res = await fetch(pokemonUrl(id));
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
-        const artwork =
-          data.sprites?.other?.['official-artwork']?.front_default ??
-          data.sprites?.front_default ??
-          `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png`;
+        const artwork = pickOfficialArtwork(data.sprites, data.id);
         setPokemon({
           id: data.id,
           name: data.name,
@@ -97,10 +98,10 @@ export default function RandomPokemonOfTheDay() {
           Pokémon of the Day
         </p>
         <p className="font-semibold text-base capitalize truncate">
-          {pokemon.name.replace(/-/g, ' ')}
+          {kebabToSpace(pokemon.name)}
         </p>
         <p className="text-xs text-muted-foreground">
-          #{pokemon.id.toString().padStart(3, '0')}
+          #{formatDexNumber(pokemon.id)}
         </p>
         <div className="flex gap-1 mt-1 flex-wrap">
           {pokemon.types.map((type) => (

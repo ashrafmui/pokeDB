@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown } from 'lucide-react';
 import { getGenerationSprites, type GenerationSprite } from '@/lib/spriteOptions';
+import { spriteUrl, backSpriteUrl, shinySpriteUrl, backShinySpriteUrl } from '@/lib/sprites';
 
 interface SpriteItem {
   key: string;
@@ -29,26 +30,10 @@ export default function PokemonSpriteVariants({
   embedded = false,
 }: Props) {
   const defaultSprites: SpriteItem[] = [
-    {
-      key: 'front',
-      label: 'Front',
-      src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`,
-    },
-    {
-      key: 'back',
-      label: 'Back',
-      src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${pokemonId}.png`,
-    },
-    {
-      key: 'front-shiny',
-      label: 'Shiny',
-      src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemonId}.png`,
-    },
-    {
-      key: 'back-shiny',
-      label: 'Shiny Back',
-      src: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/${pokemonId}.png`,
-    },
+    { key: 'front', label: 'Front', src: spriteUrl(pokemonId) },
+    { key: 'back', label: 'Back', src: backSpriteUrl(pokemonId) },
+    { key: 'front-shiny', label: 'Shiny', src: shinySpriteUrl(pokemonId) },
+    { key: 'back-shiny', label: 'Shiny Back', src: backShinySpriteUrl(pokemonId) },
   ];
 
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());

@@ -2,6 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { fetchSpecies } from '@/lib/pokeApi';
+import { toTitleCase } from '@/lib/formatters';
 
 interface SpeciesData {
   gender_rate: number;
@@ -10,12 +12,7 @@ interface SpeciesData {
 }
 
 async function getSpeciesData(pokemonId: number): Promise<SpeciesData | null> {
-  const res = await fetch(
-    `https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`,
-    { next: { revalidate: 86400 } }
-  );
-  if (!res.ok) return null;
-  return res.json();
+  return fetchSpecies(pokemonId);
 }
 
 function formatEggGroupName(name: string): string {
@@ -33,11 +30,8 @@ function formatEggGroupName(name: string): string {
   if (specialCases[name.toLowerCase()]) {
     return specialCases[name.toLowerCase()];
   }
-  
-  return name
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+
+  return toTitleCase(name);
 }
 
 function GenderBar({ genderRate }: { genderRate: number }) {

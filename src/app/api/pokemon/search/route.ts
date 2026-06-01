@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { POKEAPI_BASE, pokemonUrl } from '@/lib/pokeApi';
+import { pickAnimatedSprite } from '@/lib/sprites';
 
 // Cache the full Pokémon list in memory so we don't re-fetch on every search
 let cachedList: { name: string; url: string }[] | null = null;
@@ -6,7 +8,7 @@ let cachedList: { name: string; url: string }[] | null = null;
 async function getFullList() {
   if (cachedList) return cachedList;
 
-  const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=10000', {
+  const res = await fetch(`${POKEAPI_BASE}/pokemon?limit=10000`, {
     next: { revalidate: 86400 },
   });
   const data = await res.json();
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
     // Fetch details (sprite + types) for each match in parallel
     const detailed = await Promise.all(
       matches.map(async p => {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.name}`, {
+        const res = await fetch(pokemonUrl(p.name), {
           next: { revalidate: 86400 },
         });
         const data = await res.json();
@@ -50,11 +52,7 @@ export async function GET(request: NextRequest) {
         return {
           id: data.id,
           name: data.name,
-          sprite:
-            data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default ??
-            data.sprites.other?.showdown?.front_default ??
-            data.sprites.other?.home?.front_default ??
-            data.sprites.front_default,
+          sprite: pickAnimatedSprite(data.sprites),
           types: data.types.map((t: { slot: number; type: { name: string } }) => ({
             id: t.slot,
             name: t.type.name,

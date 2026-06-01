@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { typeColors } from "@/components/PokemonTypes";
+import { TYPE_COLORS } from "@/lib/typeColors";
 import { getGenerationFromId } from "@/lib/typeUtils";
+import { capitalize, formatDexNumber, kebabToSpace } from "@/lib/formatters";
 
 interface PokemonRowProps {
   id: number;
@@ -15,7 +16,7 @@ interface PokemonRowProps {
 export default function PokemonRow({ id, name, sprite, types }: PokemonRowProps) {
   const generation = getGenerationFromId(id);
   const primaryType = types[0];
-  const borderColor = typeColors[primaryType] || "#A8A878";
+  const borderColor = TYPE_COLORS[primaryType] || "#A8A878";
 
   return (
     <Link href={`/pokemon/${id}`}>
@@ -40,10 +41,10 @@ export default function PokemonRow({ id, name, sprite, types }: PokemonRowProps)
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span className="text-sm font-mono text-muted-foreground">
-              #{id.toString().padStart(4, "0")}
+              #{formatDexNumber(id, 4)}
             </span>
             <h3 className="font-semibold text-lg capitalize truncate">
-              {name.replace(/-/g, " ")}
+              {kebabToSpace(name)}
             </h3>
           </div>
           <p className="text-sm text-muted-foreground">{generation}</p>
@@ -55,9 +56,9 @@ export default function PokemonRow({ id, name, sprite, types }: PokemonRowProps)
             <span
               key={type}
               className="px-3 py-1 rounded-full text-white text-xs font-semibold"
-              style={{ backgroundColor: typeColors[type] || "#333" }}
+              style={{ backgroundColor: TYPE_COLORS[type] || "#333" }}
             >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
+              {capitalize(type)}
             </span>
           ))}
         </div>

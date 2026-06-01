@@ -1,17 +1,8 @@
-const GAME_LOGOS = new Set([
-  'red', 'blue', 'yellow',
-  'gold', 'silver', 'crystal',
-  'ruby', 'sapphire', 'emerald', 'firered', 'leafgreen',
-  'diamond', 'pearl', 'platinum', 'heartgold', 'soulsilver',
-  'black', 'white', 'black-2', 'white-2',
-  'x', 'y', 'omega-ruby', 'alpha-sapphire',
-  'sun', 'moon', 'ultra-sun', 'ultra-moon',
-  'lets-go-pikachu', 'lets-go-eevee',
-  'sword', 'shield',
-  'brilliant-diamond', 'shining-pearl',
-  'legends-arceus',
-  'scarlet', 'violet',
-]);
+// Resolves a game-logo image for a version, e.g. `public/images/game-logos/red.png`.
+// The set of known versions is derived from the canonical version table.
+import { ALL_VERSIONS } from "./versions";
+
+const GAME_LOGOS = new Set(ALL_VERSIONS);
 
 export function fetchBoxartUrl(version: string): string | null {
   const key = version.toLowerCase();

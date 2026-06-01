@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { generationThemes } from "./GenerationThemes";
+import { kebabToSpace } from "@/lib/formatters";
 
 interface Pokemon {
   id: number;
@@ -108,7 +109,7 @@ export default function PCBox({ pokemonList, generation }: PCBoxProps) {
                         {/* Name tooltip - appears below on hover */}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                           <div className="bg-gray-900/95 text-white text-[10px] sm:text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg border border-gray-700 font-medium capitalize">
-                            {pokemon.name.replace(/-/g, " ")}
+                            {kebabToSpace(pokemon.name)}
                           </div>
                         </div>
                         

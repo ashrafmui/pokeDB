@@ -15,6 +15,9 @@ import {
 import { getVersionColor } from '@/lib/versionColors';
 import { getComputedBgColor } from '@/lib/locationUtils';
 import { cn } from '@/lib/utils';
+import { TYPE_COLORS } from '@/lib/typeColors';
+import { toTitleCase, kebabToSpace } from '@/lib/formatters';
+import { pokemonUrl } from '@/lib/pokeApi';
 
 interface MoveDetail {
   name: string;
@@ -54,14 +57,6 @@ interface PokemonMovesProps {
 
 type LearnMethod = 'level-up' | 'machine' | 'egg' | 'tutor';
 
-const typeColors: Record<string, string> = {
-  normal: "#A8A878", fire: "#F08030", water: "#6890F0", electric: "#F8D030",
-  grass: "#78C850", ice: "#98D8D8", fighting: "#C03028", poison: "#A040A0",
-  ground: "#E0C068", flying: "#A890F0", psychic: "#F85888", bug: "#A8B820",
-  rock: "#B8A038", ghost: "#705898", dragon: "#7038F8", dark: "#705848",
-  steel: "#B8B8D0", fairy: "#EE99AC",
-};
-
 const damageClassIcons: Record<string, { icon: string; color: string }> = {
   physical: { icon: '💥', color: '#C03028' },
   special: { icon: '✨', color: '#5060E0' },
@@ -69,7 +64,7 @@ const damageClassIcons: Record<string, { icon: string; color: string }> = {
 };
 
 function formatMoveName(name: string): string {
-  return name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return toTitleCase(name);
 }
 
 function getMethodLabel(method: LearnMethod): string {
@@ -130,7 +125,7 @@ export default function PokemonMoves({ pokemonId }: PokemonMovesProps) {
       setError(null);
 
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+        const res = await fetch(pokemonUrl(pokemonId));
         if (!res.ok) throw new Error('Failed to fetch Pokemon');
         const data = await res.json();
 
@@ -284,7 +279,7 @@ export default function PokemonMoves({ pokemonId }: PokemonMovesProps) {
                   )}
                   style={isSelected ? { backgroundColor: getComputedBgColor(colors.bg) } : {}}
                 >
-                  {version.replace(/-/g, ' ')}
+                  {kebabToSpace(version)}
                 </button>
               );
             })}
@@ -318,7 +313,7 @@ export default function PokemonMoves({ pokemonId }: PokemonMovesProps) {
                     <TableCell>
                       <span 
                         className="px-2 py-0.5 rounded text-xs font-medium text-white capitalize"
-                        style={{ backgroundColor: typeColors[move.type] || '#888' }}
+                        style={{ backgroundColor: TYPE_COLORS[move.type] || '#888' }}
                       >
                         {move.type}
                       </span>

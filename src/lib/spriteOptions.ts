@@ -1,3 +1,5 @@
+import { capitalize } from './formatters';
+
 export interface GenerationSprite {
   key: string;
   /** Human-readable generation label, e.g. "Gen I" */
@@ -100,7 +102,7 @@ export function getGenerationSprites(
 function formatGameName(raw: string): string {
   return raw
     .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map(capitalize)
     .join(' ')
     .replace(/\s(?=[A-Z][a-z])/g, ' / ')
     // Handle combined names like "firered" → split on camelCase boundary

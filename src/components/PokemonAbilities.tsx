@@ -7,6 +7,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
+import { fetchPokemon } from '@/lib/pokeApi';
+import { toTitleCase } from '@/lib/formatters';
 
 interface AbilitySlot {
   ability: { name: string; url: string };
@@ -31,15 +33,11 @@ interface ProcessedAbility {
 }
 
 async function getAbilities(pokemonId: number): Promise<ProcessedAbility[]> {
-  // Fetch pokemon data to get ability list
-  const pokemonRes = await fetch(
-    `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
-    { next: { revalidate: 86400 } } // Cache for 24 hours
-  );
-  
-  if (!pokemonRes.ok) return [];
-  
-  const pokemon = await pokemonRes.json();
+  // Fetch pokemon data to get ability list (cached for 24 hours)
+  const pokemon = await fetchPokemon(pokemonId);
+
+  if (!pokemon) return [];
+
   const abilitySlots: AbilitySlot[] = pokemon.abilities;
 
   // Fetch details for each ability in parallel
@@ -78,10 +76,7 @@ async function getAbilities(pokemonId: number): Promise<ProcessedAbility[]> {
 }
 
 function formatAbilityName(name: string): string {
-  return name
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  return toTitleCase(name);
 }
 
 export default async function PokemonAbilities({ pokemonId }: { pokemonId: number }) {

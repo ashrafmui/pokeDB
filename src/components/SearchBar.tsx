@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { formatDexNumber } from "@/lib/formatters";
 
 interface Pokemon {
   id: number;
@@ -170,7 +171,7 @@ export default function SearchBar() {
                   <div>
                     <p className="font-semibold capitalize">{pokemon.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      #{pokemon.id.toString().padStart(3, "0")} •{" "}
+                      #{formatDexNumber(pokemon.id)} •{" "}
                       {pokemon.types.map((t) => t.name).join(", ")}
                     </p>
                   </div>

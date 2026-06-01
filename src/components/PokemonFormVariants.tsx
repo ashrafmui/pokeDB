@@ -3,6 +3,10 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { AnimatedCollapsibleContent, Collapsible, CollapseToggle, useCollapsible } from '@/components/ui/collapsible';
+import { FORM_ICONS, pokespriteFormUrl, pickOfficialArtwork } from '@/lib/sprites';
+import { getTypeBadgeColors } from '@/lib/typeColors';
+import { capitalize } from '@/lib/formatters';
+import { pokemonUrl } from '@/lib/pokeApi';
 
 interface PokemonForm {
   id: number;
@@ -19,53 +23,8 @@ interface PokemonFormVariantsProps {
   pokemonName: string;
 }
 
-const typeColors: Record<string, { bg: string; text: string }> = {
-  normal: { bg: "#A8A878", text: "#fff" },
-  fire: { bg: "#F08030", text: "#fff" },
-  water: { bg: "#6890F0", text: "#fff" },
-  electric: { bg: "#F8D030", text: "#333" },
-  grass: { bg: "#78C850", text: "#fff" },
-  ice: { bg: "#98D8D8", text: "#333" },
-  fighting: { bg: "#C03028", text: "#fff" },
-  poison: { bg: "#A040A0", text: "#fff" },
-  ground: { bg: "#E0C068", text: "#333" },
-  flying: { bg: "#A890F0", text: "#fff" },
-  psychic: { bg: "#F85888", text: "#fff" },
-  bug: { bg: "#A8B820", text: "#fff" },
-  rock: { bg: "#B8A038", text: "#fff" },
-  ghost: { bg: "#705898", text: "#fff" },
-  dragon: { bg: "#7038F8", text: "#fff" },
-  dark: { bg: "#705848", text: "#fff" },
-  steel: { bg: "#B8B8D0", text: "#333" },
-  fairy: { bg: "#EE99AC", text: "#333" },
-};
-
-const FORM_ICONS = {
-  mega: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
-  'mega-x': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
-  'mega-y': 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/mega-evolution-sigil-hires.png',
-  gmax: 'https://raw.githubusercontent.com/msikma/pokesprite/master/misc/special-attribute/gigantamax-icon.png',
-};
-
-function getPokespriteUrl(pokemonName: string, formType: string): string {
-  const baseName = pokemonName.toLowerCase();
-  
-  switch (formType) {
-    case 'mega':
-      return `https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/${baseName}-mega.png`;
-    case 'mega-x':
-      return `https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/${baseName}-mega-x.png`;
-    case 'mega-y':
-      return `https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/${baseName}-mega-y.png`;
-    case 'gmax':
-      return `https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/${baseName}-gmax.png`;
-    default:
-      return `https://raw.githubusercontent.com/msikma/pokesprite/master/pokemon-gen8/regular/${baseName}.png`;
-  }
-}
-
 function getFormDisplayName(formType: string, pokemonName: string): string {
-  const capitalizedName = pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1);
+  const capitalizedName = capitalize(pokemonName);
   switch (formType) {
     case 'mega':
       return `Mega ${capitalizedName}`;
@@ -101,17 +60,15 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
 
         for (const variant of megaVariants) {
           try {
-            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}${variant.suffix}`);
+            const res = await fetch(`${pokemonUrl(pokemonName)}${variant.suffix}`);
             if (res.ok) {
               const data = await res.json();
               foundForms.push({
                 id: data.id,
                 name: data.name,
                 formName: getFormDisplayName(variant.type, pokemonName),
-                sprite: data.sprites.other?.['official-artwork']?.front_default 
-                  || data.sprites.front_default 
-                  || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png`,
-                pokespriteUrl: getPokespriteUrl(pokemonName, variant.type),
+                sprite: pickOfficialArtwork(data.sprites, data.id),
+                pokespriteUrl: pokespriteFormUrl(pokemonName, variant.type),
                 types: data.types.map((t: { type: { name: string } }) => t.type.name),
                 formType: variant.type,
               });
@@ -123,17 +80,15 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
 
         // Check for Gigantamax
         try {
-          const gmaxRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}-gmax`);
+          const gmaxRes = await fetch(`${pokemonUrl(pokemonName)}-gmax`);
           if (gmaxRes.ok) {
             const data = await gmaxRes.json();
             foundForms.push({
               id: data.id,
               name: data.name,
               formName: getFormDisplayName('gmax', pokemonName),
-              sprite: data.sprites.other?.['official-artwork']?.front_default 
-                || data.sprites.front_default 
-                || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png`,
-              pokespriteUrl: getPokespriteUrl(pokemonName, 'gmax'),
+              sprite: pickOfficialArtwork(data.sprites, data.id),
+              pokespriteUrl: pokespriteFormUrl(pokemonName, 'gmax'),
               types: data.types.map((t: { type: { name: string } }) => t.type.name),
               formType: 'gmax',
             });
@@ -209,7 +164,7 @@ export default function PokemonFormVariants({ pokemonId, pokemonName }: PokemonF
             {/* Types */}
             <div className="flex gap-2">
               {selectedForm.types.map((type) => {
-                const colors = typeColors[type] || { bg: '#888', text: '#fff' };
+                const colors = getTypeBadgeColors(type);
                 return (
                   <span
                     key={type}

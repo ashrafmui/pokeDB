@@ -7,6 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { fetchPokemon, fetchSpecies } from '@/lib/pokeApi';
+import { capitalize, toTitleCase, formatHeight, formatWeight } from '@/lib/formatters';
 
 interface PokemonData {
   height: number;
@@ -25,49 +27,17 @@ interface SpeciesData {
 }
 
 async function getPokemonData(pokemonId: number): Promise<PokemonData | null> {
-  const res = await fetch(
-    `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
-    { next: { revalidate: 86400 } }
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
+  const data = await fetchPokemon(pokemonId);
+  if (!data) return null;
   return { height: data.height, weight: data.weight };
 }
 
 async function getSpeciesData(pokemonId: number): Promise<SpeciesData | null> {
-  const res = await fetch(
-    `https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`,
-    { next: { revalidate: 86400 } }
-  );
-  if (!res.ok) return null;
-  return res.json();
-}
-
-function formatHeight(decimeters: number): { metric: string; imperial: string } {
-  const meters = decimeters / 10;
-  const totalInches = decimeters * 3.937;
-  const feet = Math.floor(totalInches / 12);
-  const inches = Math.round(totalInches % 12);
-  return {
-    metric: `${meters.toFixed(1)} m`,
-    imperial: `${feet}'${inches.toString().padStart(2, '0')}"`,
-  };
-}
-
-function formatWeight(hectograms: number): { metric: string; imperial: string } {
-  const kg = hectograms / 10;
-  const lbs = kg * 2.20462;
-  return {
-    metric: `${kg.toFixed(1)} kg`,
-    imperial: `${lbs.toFixed(1)} lbs`,
-  };
+  return fetchSpecies(pokemonId);
 }
 
 function formatGrowthRate(rate: string): string {
-  return rate
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  return toTitleCase(rate);
 }
 
 function formatGeneration(gen: string): string {
@@ -183,7 +153,7 @@ export default async function PokemonSpeciesCard({ pokemonId }: { pokemonId: num
               {speciesData.habitat && (
                 <StatRow 
                   label="Habitat" 
-                  value={speciesData.habitat.name.charAt(0).toUpperCase() + speciesData.habitat.name.slice(1)}
+                  value={capitalize(speciesData.habitat.name)}
                 />
               )}
             </>

@@ -13,8 +13,8 @@ import PokemonAbilities from '@/components/PokemonAbilities';
 import TypeEffectiveness from '@/components/TypeEffectiveness';
 import PokemonSpeciesCard from '@/components/PokemonSpeciesCard';
 import BreedingInfo from '@/components/BreedingInfo';
-
-const POKEAPI_BASE = 'https://pokeapi.co/api/v2';
+import { fetchPokemon, fetchSpecies } from '@/lib/pokeApi';
+import { pickAnimatedSprite } from '@/lib/sprites';
 
 // Consider a max ID constant or fetch from PokeAPI's pokemon?limit=1&offset=0
 // to get the count. For now, National Dex cap:
@@ -58,15 +58,16 @@ interface PokeAPISpecies {
 }
 
 async function getPokemon(id: number) {
-  const [pokemonRes, speciesRes] = await Promise.all([
-    fetch(`${POKEAPI_BASE}/pokemon/${id}`, { next: { revalidate: 86400 } }),
-    fetch(`${POKEAPI_BASE}/pokemon-species/${id}`, { next: { revalidate: 86400 } }),
+  const [pokemonData, speciesData] = await Promise.all([
+    fetchPokemon(id),
+    fetchSpecies(id),
   ]);
 
-  if (!pokemonRes.ok) return null;
+  if (!pokemonData) return null;
 
-  const pokemon: PokeAPIPokemon = await pokemonRes.json();
-  const species: PokeAPISpecies = speciesRes.ok ? await speciesRes.json() : { flavor_text_entries: [], habitat: null };
+  const pokemon = pokemonData as PokeAPIPokemon;
+  const species: PokeAPISpecies =
+    (speciesData as PokeAPISpecies) ?? { flavor_text_entries: [], habitat: null };
 
   // Transform to match your existing component interfaces
   const types = pokemon.types.map((t) => ({
@@ -93,13 +94,7 @@ async function getPokemon(id: number) {
       flavorText: entry.flavor_text.replace(/\f|\n|\r/g, ' '),
     }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const versions = pokemon.sprites.versions as any;
-  const sprite =
-    versions?.['generation-v']?.['black-white']?.animated?.front_default ??
-    pokemon.sprites.other?.showdown?.front_default ??
-    pokemon.sprites.other?.home?.front_default ??
-    pokemon.sprites.front_default;
+  const sprite = pickAnimatedSprite(pokemon.sprites) as string;
 
   return {
     id: pokemon.id,

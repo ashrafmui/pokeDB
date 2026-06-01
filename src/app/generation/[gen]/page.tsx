@@ -3,6 +3,8 @@ import GenerationButtons from "@/components/GenerationButtons";
 import BackgroundGradient from "@/components/BackgroundGradient";
 import Header from "@/components/Header";
 import PCBox from "@/components/PCBox";
+import { POKEAPI_BASE } from "@/lib/pokeApi";
+import { spriteUrl } from "@/lib/sprites";
 
 interface Pokemon {
   name: string;
@@ -14,7 +16,7 @@ interface GenerationResponse {
 }
 
 async function getPokemon(generation: number) {
-  const res = await fetch(`https://pokeapi.co/api/v2/generation/${generation}`, {
+  const res = await fetch(`${POKEAPI_BASE}/generation/${generation}`, {
     next: { revalidate: 86400 },
   });
 
@@ -28,7 +30,7 @@ async function getPokemon(generation: number) {
       return {
         id,
         name: p.name,
-        sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+        sprite: spriteUrl(id),
       };
     })
     .sort((a, b) => a.id - b.id);

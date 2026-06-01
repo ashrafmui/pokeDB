@@ -1,3 +1,5 @@
+import { toTitleCase } from './formatters';
+
 export interface LocationData {
   name: string;
   methods: string[];
@@ -40,12 +42,7 @@ export function getLocationIcon(type: string): string {
 }
 
 export function formatLocationName(name: string): string {
-  return name
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-    .replace(/Area$/, '')
-    .trim();
+  return toTitleCase(name).replace(/Area$/, '').trim();
 }
 
 export function formatMethodName(method: string): string {
@@ -80,7 +77,7 @@ export function formatMethodName(method: string): string {
     'roaming-grass': 'Roaming (Grass)',
     'roaming-water': 'Roaming (Water)',
   };
-  return methodMap[method] || method.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return methodMap[method] || toTitleCase(method);
 }
 
 export function getComputedBgColor(bgClass: string): string {

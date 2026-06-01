@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDownIcon, ArrowRightIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
+import { pokemonUrl, speciesUrl } from '@/lib/pokeApi';
+import { spriteUrl } from '@/lib/sprites';
+import { kebabToSpace } from '@/lib/formatters';
 
 interface EvolutionDetail {
   min_level: number | null;
@@ -49,10 +52,10 @@ function getEvolutionTriggerText(details: EvolutionDetail): string {
     triggers.push(`Lv. ${details.min_level}`);
   }
   if (details.item) {
-    triggers.push(details.item.name.replace(/-/g, ' '));
+    triggers.push(kebabToSpace(details.item.name));
   }
   if (details.held_item) {
-    triggers.push(`Hold ${details.held_item.name.replace(/-/g, ' ')}`);
+    triggers.push(`Hold ${kebabToSpace(details.held_item.name)}`);
   }
   if (details.min_happiness) {
     triggers.push('Happiness');
@@ -61,7 +64,7 @@ function getEvolutionTriggerText(details: EvolutionDetail): string {
     triggers.push(details.time_of_day);
   }
   if (details.location) {
-    triggers.push(details.location.name.replace(/-/g, ' '));
+    triggers.push(kebabToSpace(details.location.name));
   }
   if (details.trigger?.name === 'trade') {
     triggers.push('Trade');
@@ -83,7 +86,7 @@ async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution
     for (const link of links) {
       
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${link.species.name}`);
+        const res = await fetch(pokemonUrl(link.species.name));
         const data = await res.json();
         
         const trigger = link.evolution_details[0] 
@@ -93,7 +96,7 @@ async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution
         stages[stageIndex].push({
           id: data.id,
           name: link.species.name,
-          sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png`,
+          sprite: spriteUrl(data.id),
           trigger: stageIndex > 0 ? trigger : undefined,
         });
         
@@ -124,7 +127,7 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
       setError(null);
       
       try {
-        const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`);
+        const speciesRes = await fetch(speciesUrl(pokemonId));
         if (!speciesRes.ok) throw new Error('Failed to fetch species');
         const speciesData = await speciesRes.json();
         
@@ -223,7 +226,7 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
                       'capitalize group-hover:text-primary transition-colors text-foreground leading-tight',
                       embedded ? 'text-[10px]' : 'text-sm'
                     )}>
-                      {pokemon.name.replace(/-/g, ' ')}
+                      {kebabToSpace(pokemon.name)}
                     </p>
                   </div>
                 </Link>

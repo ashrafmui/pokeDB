@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import BackgroundGradient from "@/components/BackgroundGradient";
 import Header from "@/components/Header";
 import PokemonRow from "@/components/PokemonRow";
+import { POKEAPI_BASE, pokemonUrl } from "@/lib/pokeApi";
+import { spriteUrl } from "@/lib/sprites";
+import { capitalize } from "@/lib/formatters";
 
 interface TypePokemonEntry {
   pokemon: {
@@ -31,7 +34,7 @@ async function fetchInBatches<T, R>(
 }
 
 async function getTypePokemon(typeName: string): Promise<PokemonData[] | null> {
-  const res = await fetch(`https://pokeapi.co/api/v2/type/${typeName}`, {
+  const res = await fetch(`${POKEAPI_BASE}/type/${typeName}`, {
     next: { revalidate: 86400 },
   });
 
@@ -52,7 +55,7 @@ async function getTypePokemon(typeName: string): Promise<PokemonData[] | null> {
   // Batch fetches to avoid opening hundreds of simultaneous connections to
   // PokeAPI during build, which causes ETIMEDOUT under load.
   const detailed = await fetchInBatches(entries, 20, async (p: { id: number; name: string }) => {
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}`, {
+    const res = await fetch(pokemonUrl(p.id), {
       next: { revalidate: 86400 },
     });
     const pokemon = await res.json();
@@ -60,7 +63,7 @@ async function getTypePokemon(typeName: string): Promise<PokemonData[] | null> {
     return {
       id: pokemon.id,
       name: pokemon.name,
-      sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`,
+      sprite: spriteUrl(pokemon.id),
       types: pokemon.types.map(
         (t: { type: { name: string } }) => t.type.name
       ),
@@ -104,7 +107,7 @@ export default async function TypePage({ params }: PageProps) {
       <div className="relative z-10 flex flex-1 flex-col items-center p-4 sm:p-8 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col items-center gap-6 w-full max-w-3xl">
           <Header
-            title={`${typeName.charAt(0).toUpperCase() + typeName.slice(1)} Type`}
+            title={`${capitalize(typeName)} Type`}
           />
 
           <p className="text-sm text-muted-foreground">

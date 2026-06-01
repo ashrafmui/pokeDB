@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { calculateTypeEffectiveness } from '@/lib/typeUtils';
+import { typeIconUrl } from '@/lib/sprites';
 
 interface TypeEffectivenessProps {
   types: { name: string; [key: string]: unknown }[];
@@ -22,7 +23,7 @@ function TypeIcon({ typeName, borderColor }: TypeIconProps) {
   return (
     <div className={`w-8 h-8 rounded-full overflow-hidden border-2 ${borderColor}`}>
       <Image
-        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${typeName}.png`}
+        src={typeIconUrl(typeName)}
         alt={typeName}
         width={32}
         height={32}

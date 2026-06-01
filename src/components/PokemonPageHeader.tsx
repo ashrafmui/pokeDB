@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon } from '@radix-ui/react-icons';
 import RandomPokemonButton from '@/components/RandomPokemonButton';
 import { getTypeRelations } from '@/lib/typeUtils';
+import { typeIconUrl } from '@/lib/sprites';
+import { formatDexNumber } from '@/lib/formatters';
 
 interface Type {
   id: number;
@@ -29,7 +31,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
     <div className="relative group">
       <div className="w-12 h-12 bg-white/80 backdrop-blur rounded-full shadow-sm flex items-center justify-center overflow-hidden cursor-help transition-transform hover:scale-110">
         <Image
-          src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${typeName}.png`}
+          src={typeIconUrl(typeName)}
           alt={typeName}
           width={48}
           height={48}
@@ -55,7 +57,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
                   {typeData.weakTo.map((type) => (
                     <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-red-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        src={typeIconUrl(type)}
                         alt={type}
                         width={24}
                         height={24}
@@ -74,7 +76,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
                   {typeData.resistantTo.map((type) => (
                     <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        src={typeIconUrl(type)}
                         alt={type}
                         width={24}
                         height={24}
@@ -93,7 +95,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
                   {typeData.immuneTo.map((type) => (
                     <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-blue-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        src={typeIconUrl(type)}
                         alt={type}
                         width={24}
                         height={24}
@@ -117,7 +119,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
                   {typeData.weakTo.map((type) => (
                     <div key={type} className="w-6 h-6 rounded-full overflow-hidden border-2 border-green-400">
                       <Image
-                        src={`https://raw.githubusercontent.com/msikma/pokesprite/master/misc/types/gen8/${type}.png`}
+                        src={typeIconUrl(type)}
                         alt={type}
                         width={24}
                         height={24}
@@ -153,7 +155,7 @@ export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, m
         <div className="w-[640px] flex items-center justify-center gap-4 shrink-0">
           {/* Pokemon Number */}
           <span className="text-muted-foreground text-lg font-medium shrink-0">
-            #{pokemonId.toString().padStart(3, '0')}
+            #{formatDexNumber(pokemonId)}
           </span>
 
           {/* Pokemon Sprite */}
