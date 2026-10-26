@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  verification: { google: "rr2MVNnMBgku8-c8NzifOcy8WIIjqDl0QOaiekyTmbw" },
   keywords: ["Pokédex", "Pokémon database", "Pokémon stats", "Pokémon types", "pokeDB"],
   openGraph: {
     type: "website",
