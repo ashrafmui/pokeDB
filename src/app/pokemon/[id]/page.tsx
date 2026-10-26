@@ -13,6 +13,7 @@ import PokemonAbilities from '@/components/PokemonAbilities';
 import TypeEffectiveness from '@/components/TypeEffectiveness';
 import PokemonSpeciesCard from '@/components/PokemonSpeciesCard';
 import BreedingInfo from '@/components/BreedingInfo';
+import PokemonNamesCard from '@/components/PokemonNamesCard';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchPokemon, fetchSpecies } from '@/lib/pokeApi';
@@ -42,6 +43,7 @@ interface PokeAPIPokemon {
   name: string;
   types: PokeAPIType[];
   stats: PokeAPIStat[];
+  cries?: { latest: string | null; legacy: string | null };
   sprites: {
     front_default: string;
     other: {
@@ -55,6 +57,7 @@ interface PokeAPIPokemon {
 interface PokeAPISpecies {
   flavor_text_entries: PokeAPIFlavorTextEntry[];
   habitat: { name: string; url: string } | null;
+  genera?: { genus: string; language: { name: string } }[];
 }
 
 async function getPokemon(id: number) {
@@ -104,6 +107,11 @@ async function getPokemon(id: number) {
     stats,
     pokedexEntries,
     habitat: species.habitat?.name ?? null,
+    genus: species.genera?.find((g) => g.language.name === 'en')?.genus ?? null,
+    cries: {
+      latest: pokemon.cries?.latest ?? null,
+      legacy: pokemon.cries?.legacy ?? null,
+    },
     spritesVersions: (pokemon.sprites.versions ?? {}) as Record<string, unknown>,
   };
 }
@@ -158,6 +166,8 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               sprite={pokemon.sprite}
               types={pokemon.types}
               maxId={MAX_POKEMON_ID}
+              genus={pokemon.genus}
+              cries={pokemon.cries}
             />
           </div>
 
@@ -182,6 +192,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               <PokemonSpeciesCard pokemonId={pokemon.id} />
               <BreedingInfo pokemonId={pokemon.id} />
             </div>
+            <PokemonNamesCard pokemonId={pokemon.id} />
           </PokemonTimelineSection>
 
           <PokemonTimelineSection

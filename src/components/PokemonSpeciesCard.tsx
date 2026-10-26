@@ -13,6 +13,8 @@ import { capitalize, toTitleCase, formatHeight, formatWeight } from '@/lib/forma
 interface PokemonData {
   height: number;
   weight: number;
+  baseExperience: number | null;
+  evYield: { stat: string; effort: number }[];
 }
 
 interface SpeciesData {
@@ -29,7 +31,14 @@ interface SpeciesData {
 async function getPokemonData(pokemonId: number): Promise<PokemonData | null> {
   const data = await fetchPokemon(pokemonId);
   if (!data) return null;
-  return { height: data.height, weight: data.weight };
+  return {
+    height: data.height,
+    weight: data.weight,
+    baseExperience: data.base_experience ?? null,
+    evYield: (data.stats as { effort: number; stat: { name: string } }[])
+      .filter((s) => s.effort > 0)
+      .map((s) => ({ stat: s.stat.name, effort: s.effort })),
+  };
 }
 
 async function getSpeciesData(pokemonId: number): Promise<SpeciesData | null> {
@@ -49,6 +58,20 @@ function formatGeneration(gen: string): string {
     'V': 'Unova', 'VI': 'Kalos', 'VII': 'Alola', 'VIII': 'Galar', 'IX': 'Paldea',
   };
   return `Gen ${numeral}${regions[numeral] ? ` (${regions[numeral]})` : ''}`;
+}
+
+const STAT_LABELS: Record<string, string> = {
+  'hp': 'HP',
+  'attack': 'Attack',
+  'defense': 'Defense',
+  'special-attack': 'Sp. Atk',
+  'special-defense': 'Sp. Def',
+  'speed': 'Speed',
+};
+
+/** [{stat: "speed", effort: 2}] → "+2 Speed" */
+function formatEvYield(evYield: PokemonData['evYield']): string {
+  return evYield.map((ev) => `+${ev.effort} ${STAT_LABELS[ev.stat] ?? toTitleCase(ev.stat)}`).join(', ');
 }
 
 function calculateCatchProbability(captureRate: number): string {
@@ -130,6 +153,20 @@ export default async function PokemonSpeciesCard({ pokemonId }: { pokemonId: num
         <div className="space-y-0">
           <StatRow label="Height" value={height.metric} subValue={height.imperial} />
           <StatRow label="Weight" value={weight.metric} subValue={weight.imperial} />
+          {pokemonData.evYield.length > 0 && (
+            <StatRow
+              label="EV Yield"
+              value={formatEvYield(pokemonData.evYield)}
+              tooltip="Effort Values gained for defeating this Pokémon"
+            />
+          )}
+          {pokemonData.baseExperience !== null && (
+            <StatRow
+              label="Base Experience"
+              value={pokemonData.baseExperience.toString()}
+              tooltip="Base XP yield for defeating this Pokémon"
+            />
+          )}
           {speciesData && (
             <>
               <StatRow 

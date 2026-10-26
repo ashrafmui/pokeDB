@@ -8,6 +8,7 @@ import RandomPokemonButton from '@/components/RandomPokemonButton';
 import { getTypeRelations } from '@/lib/typeUtils';
 import { typeIconUrl } from '@/lib/sprites';
 import { formatDexNumber } from '@/lib/formatters';
+import PokemonCry, { type PokemonCries } from '@/components/PokemonCry';
 
 interface Type {
   id: number;
@@ -22,6 +23,8 @@ interface PokemonHeaderProps {
   sprite: string;
   types: Type[];
   maxId: number;
+  genus?: string | null;
+  cries?: PokemonCries;
 }
 
 function TypeIcon({ typeName }: { typeName: string }) {
@@ -137,7 +140,7 @@ function TypeIcon({ typeName }: { typeName: string }) {
   );
 }
 
-export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, maxId }: PokemonHeaderProps) {
+export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, maxId, genus, cries }: PokemonHeaderProps) {
   return (
     <div className="flex items-center">
       {/* Left - Back & Random */}
@@ -171,9 +174,16 @@ export default function PokemonHeader({ pokemonId, pokemonName, sprite, types, m
           </div>
 
           {/* Name — truncates if it would otherwise overflow the cluster */}
-          <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none min-w-0 max-w-[360px] truncate">
-            {pokemonName}
-          </h1>
+          <div className="min-w-0 max-w-[360px]">
+            <h1 className="font-pocket-monk font-extralight text-5xl capitalize leading-none truncate">
+              {pokemonName}
+            </h1>
+            {genus && (
+              <p className="text-sm text-muted-foreground mt-1 truncate">{genus}</p>
+            )}
+          </div>
+
+          {cries && <PokemonCry cries={cries} pokemonName={pokemonName} />}
 
           {/* Types */}
           <div className="flex gap-3 items-center shrink-0">
