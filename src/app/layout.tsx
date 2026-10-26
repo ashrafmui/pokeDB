@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import Attribution from "@/components/Attribution";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,8 +17,28 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "poKeDB",
-  description: "Pokemon Database",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} – Pokémon Database & Pokédex`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: ["Pokédex", "Pokémon database", "Pokémon stats", "Pokémon types", "pokeDB"],
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} – Pokémon Database & Pokédex`,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    images: [{ url: "/images/pokeball.png", alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary",
+    title: `${SITE_NAME} – Pokémon Database & Pokédex`,
+    description: SITE_DESCRIPTION,
+    images: ["/images/pokeball.png"],
+  },
 };
 
 export default function RootLayout({

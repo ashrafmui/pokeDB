@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GenerationButtons from "@/components/GenerationButtons";
 import BackgroundGradient from "@/components/BackgroundGradient";
@@ -5,6 +6,7 @@ import Header from "@/components/Header";
 import PCBox from "@/components/PCBox";
 import { POKEAPI_BASE } from "@/lib/pokeApi";
 import { spriteUrl } from "@/lib/sprites";
+import { GENERATION_COUNT, GENERATION_REGIONS } from "@/lib/site";
 
 interface Pokemon {
   name: string;
@@ -48,11 +50,23 @@ interface PageProps {
   params: Promise<{ gen: string }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { gen } = await params;
+  const generation = parseInt(gen);
+  const region = GENERATION_REGIONS[generation - 1];
+  if (!region) return { title: "Generation not found" };
+
+  const title = `Generation ${generation} Pokémon – ${region} Pokédex`;
+  const description = `Every Pokémon introduced in Generation ${generation} (${region}), with sprites and links to stats, types, evolutions and moves.`;
+  const url = `/generation/${generation}`;
+  return { title, description, alternates: { canonical: url }, openGraph: { title, description, url } };
+}
+
 export default async function GenerationPage({ params }: PageProps) {
   const { gen } = await params;
   const generation = parseInt(gen);
 
-  if (isNaN(generation) || generation < 1 || generation > 9) {
+  if (isNaN(generation) || generation < 1 || generation > GENERATION_COUNT) {
     notFound();
   }
 
