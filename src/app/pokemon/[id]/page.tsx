@@ -6,13 +6,14 @@ import PokemonHeader from '@/components/PokemonPageHeader';
 import PokemonNavRails from '@/components/PokemonNavRails';
 import PokemonTimelineSection from '@/components/PokemonTimelineSection';
 import TradingCards from '@/components/TradingCards';
-import { Globe, Info, Layers, Swords } from 'lucide-react';
+import { Globe, Info, Layers, Sparkles, Swords } from 'lucide-react';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
 import TypeEffectiveness from '@/components/TypeEffectiveness';
 import PokemonSpeciesCard from '@/components/PokemonSpeciesCard';
 import BreedingInfo from '@/components/BreedingInfo';
+import PokemonForms from '@/components/PokemonForms';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchPokemon, fetchSpecies } from '@/lib/pokeApi';
@@ -55,6 +56,7 @@ interface PokeAPIPokemon {
 interface PokeAPISpecies {
   flavor_text_entries: PokeAPIFlavorTextEntry[];
   habitat: { name: string; url: string } | null;
+  varieties?: { is_default: boolean; pokemon: { name: string } }[];
 }
 
 async function getPokemon(id: number) {
@@ -104,6 +106,7 @@ async function getPokemon(id: number) {
     stats,
     pokedexEntries,
     habitat: species.habitat?.name ?? null,
+    hasForms: (species.varieties?.length ?? 0) > 1,
     spritesVersions: (pokemon.sprites.versions ?? {}) as Record<string, unknown>,
   };
 }
@@ -183,6 +186,18 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               <BreedingInfo pokemonId={pokemon.id} />
             </div>
           </PokemonTimelineSection>
+
+          {pokemon.hasForms && (
+            <PokemonTimelineSection
+              id="forms"
+              label="Forms"
+              Icon={Sparkles}
+              iconBg="bg-violet-50"
+              iconColor="text-violet-600"
+            >
+              <PokemonForms pokemonId={pokemon.id} />
+            </PokemonTimelineSection>
+          )}
 
           <PokemonTimelineSection
             id="combat"

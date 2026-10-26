@@ -26,3 +26,10 @@ export const fetchPokemon = (idOrName: string | number) =>
 /** Cached fetch of /pokemon-species/{id|name}; returns parsed JSON or null. */
 export const fetchSpecies = (idOrName: string | number) =>
   fetchJson(speciesUrl(idOrName));
+
+export const pokemonFormUrl = (idOrName: string | number): string =>
+  `${POKEAPI_BASE}/pokemon-form/${idOrName}`;
+
+/** Cached fetch of /pokemon-form/{id|name}; returns parsed JSON or null. */
+export const fetchPokemonForm = (idOrName: string | number) =>
+  fetchJson(pokemonFormUrl(idOrName));
