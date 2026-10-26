@@ -13,12 +13,12 @@ import PokemonAbilities from '@/components/PokemonAbilities';
 import TypeEffectiveness from '@/components/TypeEffectiveness';
 import PokemonSpeciesCard from '@/components/PokemonSpeciesCard';
 import BreedingInfo from '@/components/BreedingInfo';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { fetchPokemon, fetchSpecies } from '@/lib/pokeApi';
-import { pickAnimatedSprite } from '@/lib/sprites';
-
-// Consider a max ID constant or fetch from PokeAPI's pokemon?limit=1&offset=0
-// to get the count. For now, National Dex cap:
-const MAX_POKEMON_ID = 1025;
+import { officialArtworkUrl, pickAnimatedSprite } from '@/lib/sprites';
+import { capitalize, formatDexNumber, toTitleCase } from '@/lib/formatters';
+import { MAX_POKEMON_ID } from '@/lib/site';
 
 interface PokeAPIType {
   slot: number;
@@ -108,13 +108,38 @@ async function getPokemon(id: number) {
   };
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const pokemon = await getPokemon(parseInt(id));
+  if (!pokemon) return { title: 'Pokémon not found' };
+
+  const name = toTitleCase(pokemon.name);
+  const typeList = pokemon.types.map((t) => capitalize(t.name)).join('/');
+  const title = `${name} #${formatDexNumber(pokemon.id)} – ${typeList} type`;
+  const entry = pokemon.pokedexEntries.at(-1)?.description;
+  const description =
+    `${name} (#${formatDexNumber(pokemon.id)}) is a${/^[AEIOU]/.test(typeList) ? 'n' : ''} ${typeList}-type Pokémon. ` +
+    (entry ? `${entry} ` : '') +
+    'See its base stats, evolutions, moves, abilities, locations and trading cards.';
+  const image = officialArtworkUrl(pokemon.id);
+  const url = `/pokemon/${pokemon.id}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, images: [{ url: image, alt: name }] },
+    twitter: { card: 'summary_large_image', title, description, images: [image] },
+  };
+}
+
 export default async function PokemonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const currentId = parseInt(id);
   const pokemon = await getPokemon(currentId);
 
   if (!pokemon) {
-    return <div>Pokemon not found</div>;
+    notFound();
   }
 
   const prevId = currentId > 1 ? currentId - 1 : MAX_POKEMON_ID;

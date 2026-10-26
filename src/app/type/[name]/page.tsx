@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BackgroundGradient from "@/components/BackgroundGradient";
 import Header from "@/components/Header";
@@ -85,6 +86,18 @@ export async function generateStaticParams() {
 
 interface PageProps {
   params: Promise<{ name: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { name } = await params;
+  const typeName = name.toLowerCase();
+  if (!VALID_TYPES.includes(typeName)) return { title: "Type not found" };
+
+  const label = capitalize(typeName);
+  const title = `${label}-type Pokémon – full list`;
+  const description = `All ${label}-type Pokémon, with their weaknesses, resistances and links to stats, evolutions and moves.`;
+  const url = `/type/${typeName}`;
+  return { title, description, alternates: { canonical: url }, openGraph: { title, description, url } };
 }
 
 export default async function TypePage({ params }: PageProps) {
