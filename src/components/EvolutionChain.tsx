@@ -7,19 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDownIcon, ArrowRightIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
-import { pokemonUrl, speciesUrl } from '@/lib/pokeApi';
+import { speciesUrl } from '@/lib/pokeApi';
+import { describeEvolution, type EvolutionDetail } from '@/lib/evolution';
 import { spriteUrl } from '@/lib/sprites';
 import { kebabToSpace } from '@/lib/formatters';
-
-interface EvolutionDetail {
-  min_level: number | null;
-  trigger: { name: string };
-  item: { name: string } | null;
-  held_item: { name: string } | null;
-  min_happiness: number | null;
-  time_of_day: string;
-  location: { name: string } | null;
-}
 
 interface ChainLink {
   species: { name: string; url: string };
@@ -35,7 +26,7 @@ interface PokemonEvolution {
   id: number;
   name: string;
   sprite: string;
-  trigger?: string;
+  trigger?: { label: string; full: string };
 }
 
 interface EvolutionChainProps {
@@ -43,76 +34,32 @@ interface EvolutionChainProps {
   embedded?: boolean;
 }
 
-function getEvolutionTriggerText(details: EvolutionDetail): string {
-  if (!details) return '';
-  
-  const triggers: string[] = [];
-  
-  if (details.min_level) {
-    triggers.push(`Lv. ${details.min_level}`);
-  }
-  if (details.item) {
-    triggers.push(kebabToSpace(details.item.name));
-  }
-  if (details.held_item) {
-    triggers.push(`Hold ${kebabToSpace(details.held_item.name)}`);
-  }
-  if (details.min_happiness) {
-    triggers.push('Happiness');
-  }
-  if (details.time_of_day) {
-    triggers.push(details.time_of_day);
-  }
-  if (details.location) {
-    triggers.push(kebabToSpace(details.location.name));
-  }
-  if (details.trigger?.name === 'trade') {
-    triggers.push('Trade');
-  }
-  
-  return triggers.join(' + ') || '?';
+/** ".../pokemon-species/25/" → 25. Species ids match National Dex numbers. */
+function idFromSpeciesUrl(url: string): number {
+  const parts = url.split('/').filter(Boolean);
+  return parseInt(parts[parts.length - 1]);
 }
 
-async function flattenEvolutionChain(chain: ChainLink): Promise<PokemonEvolution[][]> {
+function flattenEvolutionChain(chain: ChainLink): PokemonEvolution[][] {
   const stages: PokemonEvolution[][] = [];
-  
-  async function processStage(links: ChainLink[], stageIndex: number, parentTrigger?: string) {
+
+  function processStage(links: ChainLink[], stageIndex: number) {
     if (links.length === 0) return;
-    
-    if (!stages[stageIndex]) {
-      stages[stageIndex] = [];
-    }
-    
+    stages[stageIndex] ??= [];
+
     for (const link of links) {
-      
-      try {
-        const res = await fetch(pokemonUrl(link.species.name));
-        const data = await res.json();
-        
-        const trigger = link.evolution_details[0] 
-          ? getEvolutionTriggerText(link.evolution_details[0])
-          : parentTrigger;
-        
-        stages[stageIndex].push({
-          id: data.id,
-          name: link.species.name,
-          sprite: spriteUrl(data.id),
-          trigger: stageIndex > 0 ? trigger : undefined,
-        });
-        
-        if (link.evolves_to.length > 0) {
-          const nextTrigger = link.evolves_to[0].evolution_details[0]
-            ? getEvolutionTriggerText(link.evolves_to[0].evolution_details[0])
-            : undefined;
-          await processStage(link.evolves_to, stageIndex + 1, nextTrigger);
-        }
-      } catch (error) {
-        console.error(`Failed to fetch Pokemon ${link.species.name}:`, error);
-      }
+      const id = idFromSpeciesUrl(link.species.url);
+      stages[stageIndex].push({
+        id,
+        name: link.species.name,
+        sprite: spriteUrl(id),
+        trigger: stageIndex > 0 ? describeEvolution(link.evolution_details) ?? undefined : undefined,
+      });
+      processStage(link.evolves_to, stageIndex + 1);
     }
   }
-  
-  await processStage([chain], 0);
+
+  processStage([chain], 0);
   return stages;
 }
 
@@ -135,7 +82,7 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
         if (!chainRes.ok) throw new Error('Failed to fetch evolution chain');
         const chainData: EvolutionChainData = await chainRes.json();
         
-        const stages = await flattenEvolutionChain(chainData.chain);
+        const stages = flattenEvolutionChain(chainData.chain);
         setEvolutionStages(stages);
       } catch (err) {
         console.error('Error fetching evolution chain:', err);
@@ -200,8 +147,19 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
                   className="group"
                 >
                   <div className="text-center">
+                    {pokemon.trigger && (
+                      <p
+                        className={cn(
+                          'text-muted-foreground leading-tight mx-auto cursor-help',
+                          embedded ? 'text-[9px] max-w-[72px] line-clamp-2 mb-0.5' : 'text-[10px] max-w-[120px] mb-1'
+                        )}
+                        title={pokemon.trigger.full}
+                      >
+                        {pokemon.trigger.label}
+                      </p>
+                    )}
                     <div className={cn(
-                      'bg-muted rounded-full flex items-center justify-center',
+                      'bg-muted rounded-full flex items-center justify-center mx-auto',
                       bubbleSize,
                       embedded ? '' : 'mb-1',
                       'transition-all group-hover:bg-muted/80 group-hover:scale-110',
@@ -217,11 +175,6 @@ export default function EvolutionChain({ pokemonId, embedded = false }: Evolutio
                         unoptimized
                       />
                     </div>
-                    {!embedded && pokemon.trigger && (
-                      <p className="text-[10px] text-muted-foreground capitalize mb-1">
-                        {pokemon.trigger}
-                      </p>
-                    )}
                     <p className={cn(
                       'capitalize group-hover:text-primary transition-colors text-foreground leading-tight',
                       embedded ? 'text-[10px]' : 'text-sm'
