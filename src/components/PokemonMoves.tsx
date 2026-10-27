@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -309,7 +310,11 @@ export default function PokemonMoves({ pokemonId }: PokemonMovesProps) {
                     {selectedMethod === 'level-up' && (
                       <TableCell className="font-medium">{move.level || '—'}</TableCell>
                     )}
-                    <TableCell className="font-medium">{formatMoveName(move.name)}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/moves/${move.name}`} className="hover:underline">
+                        {formatMoveName(move.name)}
+                      </Link>
+                    </TableCell>
                     <TableCell>
                       <span 
                         className="px-2 py-0.5 rounded text-xs font-medium text-white capitalize"

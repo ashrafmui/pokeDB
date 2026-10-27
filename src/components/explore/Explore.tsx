@@ -11,6 +11,7 @@ import { ArrowDown, ArrowUp, Check, Link2, RotateCcw, SlidersHorizontal } from '
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { spriteUrl } from '@/lib/sprites';
+import { CURRENT_GEN } from '@/lib/moveData';
 import { getTypeBadgeColors } from '@/lib/typeColors';
 import {
   CATEGORY_LABELS,
@@ -97,6 +98,37 @@ function TypeSelect({ label, value, onChange, types }: { label: string; value: s
   );
 }
 
+/**
+ * Pick a move by name. Remounted (via key) whenever the chosen move changes
+ * from outside, so the text always matches the filter after a reset or preset.
+ */
+function MoveFilter({ moves, value, onChange }: { moves: MoveOption[]; value: string; onChange: (slug: string) => void }) {
+  const [text, setText] = useState(() => moves.find((m) => m.slug === value)?.name ?? '');
+  const byName = useMemo(() => new Map(moves.map((m) => [m.name.toLowerCase(), m.slug])), [moves]);
+  return (
+    <label className="block space-y-1 text-xs">
+      <span className="text-muted-foreground">Learns the move</span>
+      <input
+        list="explore-moves"
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          const slug = byName.get(e.target.value.trim().toLowerCase());
+          if (slug) onChange(slug);
+          else if (!e.target.value.trim()) onChange('');
+        }}
+        placeholder="e.g. Earthquake"
+        className={selectClass}
+      />
+      <datalist id="explore-moves">
+        {moves.map((m) => (
+          <option key={m.slug} value={m.name} />
+        ))}
+      </datalist>
+    </label>
+  );
+}
+
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item];
 }
@@ -106,6 +138,7 @@ function FilterPanel({
   set,
   types,
   abilities,
+  moves,
   eggGroups,
   colors,
 }: {
@@ -113,6 +146,7 @@ function FilterPanel({
   set: (patch: Partial<Filters>) => void;
   types: readonly string[];
   abilities: string[];
+  moves: MoveOption[];
   eggGroups: string[];
   colors: string[];
 }) {
@@ -232,6 +266,13 @@ function FilterPanel({
             ))}
           </datalist>
         </label>
+        <MoveFilter key={filters.learns || 'none'} moves={moves} value={filters.learns} onChange={(learns) => set({ learns })} />
+        {filters.learns && (
+          <label className="flex items-start gap-2 text-xs">
+            <input type="checkbox" className="mt-0.5" checked={filters.learnsAny} onChange={(e) => set({ learnsAny: e.target.checked })} />
+            Include Pokémon that could learn it in older games but can&apos;t in Gen {CURRENT_GEN}
+          </label>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <label className="block space-y-1 text-xs">
             <span className="text-muted-foreground">Egg group</span>
@@ -357,7 +398,12 @@ function ResultsList({ rows, filters }: { rows: ExploreRow[]; filters: Filters }
   );
 }
 
-export default function Explore({ rows, types }: { rows: ExploreRow[]; types: string[] }) {
+export interface MoveOption {
+  slug: string;
+  name: string;
+}
+
+export default function Explore({ rows, types, moves }: { rows: ExploreRow[]; types: string[]; moves: MoveOption[] }) {
   const [filters, setFilters] = useState<Filters>(() => fromQuery(window.location.search));
   const [shown, setShown] = useState(PAGE);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -379,7 +425,30 @@ export default function Explore({ rows, types }: { rows: ExploreRow[]; types: st
     return { abilities: [...a].sort(), eggGroups: [...e].sort(), colors: [...c].sort() };
   }, [rows]);
 
-  const results = useMemo(() => applyFilters(rows, filters), [rows, filters]);
+  // Who learns the chosen move, fetched on demand. Keyed by slug so a stale
+  // answer is never applied to a newer choice.
+  const [learnerData, setLearnerData] = useState<{ slug: string; learners: Map<number, number> } | null>(null);
+  const wantedMove = filters.learns;
+  useEffect(() => {
+    if (!wantedMove || learnerData?.slug === wantedMove) return;
+    let cancelled = false;
+    fetch(`/api/learners?move=${encodeURIComponent(wantedMove)}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data: { ids: [number, number][] }) => {
+        if (!cancelled) setLearnerData({ slug: wantedMove, learners: new Map(data.ids) });
+      })
+      .catch(() => {
+        // An unknown move in the URL: treat it as having no learners.
+        if (!cancelled) setLearnerData({ slug: wantedMove, learners: new Map() });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [wantedMove, learnerData?.slug]);
+  const learners = learnerData?.slug === wantedMove ? learnerData.learners : null;
+  const loadingMove = Boolean(wantedMove) && learners === null;
+
+  const results = useMemo(() => applyFilters(rows, filters, learners), [rows, filters, learners]);
   const active = activeFilterCount(filters);
 
   const set = (patch: Partial<Filters>) => {
@@ -401,7 +470,7 @@ export default function Explore({ rows, types }: { rows: ExploreRow[]; types: st
   }
 
   const panel = (
-    <FilterPanel filters={filters} set={set} types={types} abilities={abilities} eggGroups={eggGroups} colors={colors} />
+    <FilterPanel filters={filters} set={set} types={types} abilities={abilities} moves={moves} eggGroups={eggGroups} colors={colors} />
   );
 
   return (
@@ -464,7 +533,7 @@ export default function Explore({ rows, types }: { rows: ExploreRow[]; types: st
         <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <p>
-              <span className="font-semibold">{results.length.toLocaleString()}</span> Pokémon
+              <span className="font-semibold">{loadingMove ? '…' : results.length.toLocaleString()}</span> Pokémon
               {active > 0 && <span className="text-muted-foreground"> · {active} filter{active === 1 ? '' : 's'}</span>}
             </p>
             <div className="flex gap-1">

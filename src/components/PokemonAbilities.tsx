@@ -7,6 +7,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 import { fetchPokemon } from '@/lib/pokeApi';
 import { toTitleCase } from '@/lib/formatters';
 
@@ -95,9 +96,9 @@ export default async function PokemonAbilities({ pokemonId }: { pokemonId: numbe
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium">
+                  <Link href={`/abilities/${ability.name}`} className="font-medium hover:underline">
                     {formatAbilityName(ability.name)}
-                  </span>
+                  </Link>
                   {ability.isHidden && (
                     <Badge variant="secondary" className="text-xs">
                       Hidden

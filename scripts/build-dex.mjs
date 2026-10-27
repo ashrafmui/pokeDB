@@ -4,64 +4,16 @@
 // precomputed type matchup chart.
 //
 // Source: the CSV files PokéAPI itself is built from, pinned to a commit so
-// the output is reproducible. Bump POKEAPI_COMMIT when new games ship.
+// the output is reproducible (see scripts/lib/pokeapi-csv.mjs).
 //
 //   npm run build:dex
 
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { POKEAPI_COMMIT, ENGLISH, loadCsv, groupBy, indexBy, int } from './lib/pokeapi-csv.mjs';
 
-const POKEAPI_COMMIT = '2bf639e5572812a67d2b94903fdcb9d095f5aeb2';
-const CSV_BASE = `https://raw.githubusercontent.com/PokeAPI/pokeapi/${POKEAPI_COMMIT}/data/v2/csv`;
-const ENGLISH = '9';
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'dex.json');
-
-// ── CSV ──────────────────────────────────────────────────────────────────────
-
-/** Minimal RFC 4180 parser: handles quoted fields with commas and "" escapes. */
-function parseCsv(text) {
-  const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') inQuotes = false;
-      else field += c;
-    } else if (c === '"') inQuotes = true;
-    else if (c === ',') { row.push(field); field = ''; }
-    else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(field); field = '';
-      if (row.length > 1 || row[0] !== '') rows.push(row);
-      row = [];
-    } else field += c;
-  }
-  if (field !== '' || row.length) { row.push(field); rows.push(row); }
-  const [header, ...body] = rows;
-  return body.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
-}
-
-async function loadCsv(name) {
-  const res = await fetch(`${CSV_BASE}/${name}.csv`);
-  if (!res.ok) throw new Error(`Failed to download ${name}.csv: ${res.status}`);
-  return parseCsv(await res.text());
-}
-
-const groupBy = (rows, key) => {
-  const map = new Map();
-  for (const r of rows) {
-    const k = r[key];
-    if (!map.has(k)) map.set(k, []);
-    map.get(k).push(r);
-  }
-  return map;
-};
-const indexBy = (rows, key) => new Map(rows.map((r) => [r[key], r]));
-const int = (s) => (s === '' ? null : Number(s));
 
 // ── Build ────────────────────────────────────────────────────────────────────
 
