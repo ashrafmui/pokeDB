@@ -4,7 +4,7 @@ import BackgroundGradient from '@/components/BackgroundGradient';
 
 export const metadata: Metadata = {
   title: 'Play – Pokémon Games',
-  description: 'Pokémon games on poKeDB: guess the daily Pokémon in Pokédle, with more games on the way.',
+  description: "Pokémon games on poKeDB: guess the daily Pokémon in Pokédle, name silhouettes in Who's That Pokémon? and race the clock in Name Them All.",
   alternates: { canonical: '/play' },
 };
 
@@ -16,16 +16,16 @@ const GAMES = [
     live: true,
   },
   {
-    href: null,
+    href: '/play/whos-that-pokemon',
     title: "Who's That Pokémon?",
-    blurb: 'Name the Pokémon from its silhouette.',
-    live: false,
+    blurb: 'Name the Pokémon from its silhouette. Three lives, three hints, how long can your streak go?',
+    live: true,
   },
   {
-    href: null,
+    href: '/play/name-them-all',
     title: 'Name Them All',
-    blurb: 'How many Pokémon from a generation can you name in 60 seconds?',
-    live: false,
+    blurb: 'Name every Pokémon from a generation, or all 1,025, before the timer runs out.',
+    live: true,
   },
 ];
 

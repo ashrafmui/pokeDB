@@ -8,6 +8,7 @@ import dexData from '@/data/dex.json';
 import type { DexLite } from '@/lib/dexLite';
 import type { TeamMon, TypeChart } from '@/lib/team';
 import type { ExploreRow } from '@/lib/explore';
+import type { GameMon } from '@/lib/games';
 
 export type StatKey = 'hp' | 'attack' | 'defense' | 'specialAttack' | 'specialDefense' | 'speed';
 export type CompareKey = StatKey | 'total' | 'heightM' | 'weightKg';
@@ -304,4 +305,11 @@ export function toExploreRow(entry: DexEntry): ExploreRow {
     resists: matchups.filter(([, m]) => m < 1).map(([t]) => t),
     immuneTo: matchups.filter(([, m]) => m === 0).map(([t]) => t),
   };
+}
+
+// ── Games ────────────────────────────────────────────────────────────────────
+
+/** Species-level data for the name-guessing games. */
+export function toGameMon(entry: DexEntry): GameMon {
+  return { id: entry.id, name: entry.speciesName, generation: entry.generation, types: entry.types };
 }
