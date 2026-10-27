@@ -6,7 +6,8 @@ import PokemonHeader from '@/components/PokemonPageHeader';
 import PokemonNavRails from '@/components/PokemonNavRails';
 import PokemonTimelineSection from '@/components/PokemonTimelineSection';
 import TradingCards from '@/components/TradingCards';
-import { Globe, Info, Layers, Sparkles, Swords } from 'lucide-react';
+import Link from 'next/link';
+import { GitCompare, Globe, Info, Layers, Sparkles, Swords, Users } from 'lucide-react';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
@@ -227,6 +228,22 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
                 comparisons={dexEntry ? compareStats(dexEntry) : undefined}
               />
               <TypeEffectiveness types={pokemon.types} />
+            </div>
+            <div className="flex flex-wrap justify-end gap-2 text-sm">
+              <Link
+                href={`/compare?ids=${pokemon.id}`}
+                className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 font-medium hover:border-blue-500 hover:text-blue-700"
+              >
+                <GitCompare className="h-4 w-4" />
+                Compare {toTitleCase(pokemon.name)} with others
+              </Link>
+              <Link
+                href={`/team-builder?team=${pokemon.id}`}
+                className="inline-flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 font-medium hover:border-blue-500 hover:text-blue-700"
+              >
+                <Users className="h-4 w-4" />
+                Build a team around it
+              </Link>
             </div>
             <PokemonMoves pokemonId={pokemon.id} />
           </PokemonTimelineSection>
