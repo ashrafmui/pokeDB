@@ -13,6 +13,7 @@ import PokemonAbilities from '@/components/PokemonAbilities';
 import TypeEffectiveness from '@/components/TypeEffectiveness';
 import PokemonSpeciesCard from '@/components/PokemonSpeciesCard';
 import BreedingInfo from '@/components/BreedingInfo';
+import PokemonForms from '@/components/PokemonForms';
 import PokemonNamesCard from '@/components/PokemonNamesCard';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -57,6 +58,7 @@ interface PokeAPIPokemon {
 interface PokeAPISpecies {
   flavor_text_entries: PokeAPIFlavorTextEntry[];
   habitat: { name: string; url: string } | null;
+  varieties?: { is_default: boolean; pokemon: { name: string } }[];
   genera?: { genus: string; language: { name: string } }[];
 }
 
@@ -107,6 +109,7 @@ async function getPokemon(id: number) {
     stats,
     pokedexEntries,
     habitat: species.habitat?.name ?? null,
+    hasForms: (species.varieties?.length ?? 0) > 1,
     genus: species.genera?.find((g) => g.language.name === 'en')?.genus ?? null,
     cries: {
       latest: pokemon.cries?.latest ?? null,
