@@ -23,7 +23,7 @@ export default function NameThemAllPage() {
             ← All games
           </Link>
           <h1 className="mt-2 font-pocket-monk text-4xl">Name Them All</h1>
-          <p className="text-muted-foreground">Type every Pokémon you can remember before time runs out. Names count the moment theyType every Pokémon you can remember before time runs out. Spelling counts, Enter doesn&apos;t.apos;re spelled right.</p>
+          <p className="text-muted-foreground">Type every Pokémon you can remember before time runs out. Names count the moment they&apos;re spelled right.</p>
         </div>
         <NameThemAll pool={pool} />
       </div>
