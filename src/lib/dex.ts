@@ -7,6 +7,7 @@
 import dexData from '@/data/dex.json';
 import type { DexLite } from '@/lib/dexLite';
 import type { TeamMon, TypeChart } from '@/lib/team';
+import type { ExploreRow } from '@/lib/explore';
 
 export type StatKey = 'hp' | 'attack' | 'defense' | 'specialAttack' | 'specialDefense' | 'speed';
 export type CompareKey = StatKey | 'total' | 'heightM' | 'weightKg';
@@ -271,4 +272,36 @@ export function typeChart(): TypeChart {
     for (const atk of BATTLE_TYPES) chart[atk][def] = damageTaken(mono, atk);
   }
   return chart;
+}
+
+// ── Explore ──────────────────────────────────────────────────────────────────
+
+export function toExploreRow(entry: DexEntry): ExploreRow {
+  const matchups = Object.entries(entry.defense) as [string, number][];
+  return {
+    id: entry.id,
+    name: entry.name,
+    isDefault: entry.isDefault,
+    generation: entry.generation,
+    types: entry.types,
+    stats: STAT_KEYS.map((k) => entry.stats[k]),
+    total: entry.total,
+    abilities: entry.abilities.map((a) => a.name),
+    heightM: entry.heightM,
+    weightKg: entry.weightKg,
+    color: entry.color,
+    eggGroups: entry.eggGroups,
+    captureRate: entry.captureRate,
+    evolutionStage: entry.evolutionStage,
+    fullyEvolved: entry.isFullyEvolved,
+    legendary: entry.isLegendary,
+    mythical: entry.isMythical,
+    baby: entry.isBaby,
+    mega: entry.isMega,
+    regional: entry.regionalForm !== null,
+    moves: entry.moveCounts.total,
+    weakTo: matchups.filter(([, m]) => m > 1).map(([t]) => t),
+    resists: matchups.filter(([, m]) => m < 1).map(([t]) => t),
+    immuneTo: matchups.filter(([, m]) => m === 0).map(([t]) => t),
+  };
 }
