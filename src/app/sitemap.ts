@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...Array.from({ length: GENERATION_COUNT }, (_, i) => page(`/generation/${i + 1}`, 0.8)),
     ...Object.keys(TYPE_CHART).map((type) => page(`/type/${type}`, 0.7)),
     ...Array.from({ length: MAX_POKEMON_ID }, (_, i) => page(`/pokemon/${i + 1}`, 0.6)),
+    page("/play", 0.7),
+    { ...page("/play/pokedle", 0.9), changeFrequency: "daily" },
     page("/disclaimer", 0.1),
   ];
 }
