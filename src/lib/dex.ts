@@ -5,6 +5,7 @@
 // route handlers only, never from a 'use client' file.
 
 import dexData from '@/data/dex.json';
+import type { DexLite } from '@/lib/dexLite';
 
 export type StatKey = 'hp' | 'attack' | 'defense' | 'specialAttack' | 'specialDefense' | 'speed';
 export type CompareKey = StatKey | 'total' | 'heightM' | 'weightKg';
@@ -183,5 +184,19 @@ export function summarize(key: CompareKey): Summary {
     max: sorted[sorted.length - 1],
     mean: Math.round((sorted.reduce((a, b) => a + b, 0) / sorted.length) * 10) / 10,
     median: sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2,
+  };
+}
+
+/** The client-safe slice of an entry used by games and tools. */
+export function toLite(entry: DexEntry): DexLite {
+  return {
+    id: entry.id,
+    name: entry.name,
+    types: entry.types,
+    generation: entry.generation,
+    heightM: entry.heightM,
+    weightKg: entry.weightKg,
+    color: entry.color,
+    evolutionStage: entry.evolutionStage,
   };
 }

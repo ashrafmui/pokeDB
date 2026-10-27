@@ -105,7 +105,7 @@ export default function SearchBar() {
     <>
       <Button
         variant="outline"
-        className="relative w-full max-w-md justify-start rounded-full text-sm text-muted-foreground"
+        className="relative w-full max-w-md justify-start overflow-hidden rounded-full text-sm text-muted-foreground"
         onClick={() => setOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />
