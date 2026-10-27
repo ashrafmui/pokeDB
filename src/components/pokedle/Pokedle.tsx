@@ -3,11 +3,12 @@
 // The Pokédle game. Rendered only in the browser (see PokedleLoader), so it
 // can read today's date and localStorage while initialising state.
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowDown, ArrowUp, Check, Copy, RefreshCw, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PokemonPicker from '@/components/PokemonPicker';
 import { cn } from '@/lib/utils';
 import { spriteUrl, officialArtworkUrl } from '@/lib/sprites';
 import { getTypeBadgeColors } from '@/lib/typeColors';
@@ -19,7 +20,6 @@ import {
   puzzleNumber,
   scoreGuess,
   shareText,
-  suggest,
   type GuessResult,
   type HintCell,
 } from '@/lib/pokedle';
@@ -132,80 +132,6 @@ function GuessRow({ result }: { result: GuessResult }) {
   );
 }
 
-function GuessInput({
-  pool,
-  guessed,
-  disabled,
-  onGuess,
-}: {
-  pool: readonly DexLite[];
-  guessed: ReadonlySet<number>;
-  disabled: boolean;
-  onGuess: (p: DexLite) => void;
-}) {
-  const [query, setQuery] = useState('');
-  const [highlight, setHighlight] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const options = useMemo(() => suggest(pool, query, guessed), [pool, query, guessed]);
-
-  function pick(p: DexLite) {
-    onGuess(p);
-    setQuery('');
-    setHighlight(0);
-    inputRef.current?.focus();
-  }
-
-  return (
-    <div className="relative">
-      <input
-        ref={inputRef}
-        value={query}
-        disabled={disabled}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setHighlight(0);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            setHighlight((h) => Math.min(h + 1, options.length - 1));
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setHighlight((h) => Math.max(h - 1, 0));
-          } else if (e.key === 'Enter' && options[highlight]) {
-            e.preventDefault();
-            pick(options[highlight]);
-          } else if (e.key === 'Escape') {
-            setQuery('');
-          }
-        }}
-        placeholder={disabled ? 'Game over, come back tomorrow!' : 'Type a Pokémon name…'}
-        aria-label="Guess a Pokémon"
-        aria-autocomplete="list"
-        autoComplete="off"
-        className="h-12 w-full rounded-xl border-2 border-gray-200 bg-white px-4 text-base shadow-sm outline-none focus:border-blue-500 disabled:opacity-60"
-      />
-      {options.length > 0 && (
-        <ul role="listbox" className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border bg-white shadow-xl">
-          {options.map((p, i) => (
-            <li key={p.id} role="option" aria-selected={i === highlight}>
-              <button
-                type="button"
-                onMouseEnter={() => setHighlight(i)}
-                onClick={() => pick(p)}
-                className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm', i === highlight && 'bg-blue-50')}
-              >
-                <Image src={spriteUrl(p.id)} alt="" width={32} height={32} unoptimized style={{ imageRendering: 'pixelated' }} />
-                {p.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 function StatsPanel({ stats }: { stats: Stats }) {
   const winRate = stats.played ? Math.round((stats.won / stats.played) * 100) : 0;
   const maxBar = Math.max(1, ...stats.distribution);
@@ -311,7 +237,15 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
         </span>
       </div>
 
-      <GuessInput pool={pool} guessed={guessed} disabled={over} onGuess={handleGuess} />
+      <PokemonPicker
+        pool={pool}
+        exclude={guessed}
+        disabled={over}
+        onPick={handleGuess}
+        label="Guess a Pokémon"
+        placeholder="Type a Pokémon name…"
+        disabledPlaceholder="Game over, come back tomorrow!"
+      />
 
       <div>
         <div className="space-y-1.5">

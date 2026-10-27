@@ -6,6 +6,7 @@
 
 import dexData from '@/data/dex.json';
 import type { DexLite } from '@/lib/dexLite';
+import type { TeamMon, TypeChart } from '@/lib/team';
 
 export type StatKey = 'hp' | 'attack' | 'defense' | 'specialAttack' | 'specialDefense' | 'speed';
 export type CompareKey = StatKey | 'total' | 'heightM' | 'weightKg';
@@ -199,4 +200,75 @@ export function toLite(entry: DexEntry): DexLite {
     color: entry.color,
     evolutionStage: entry.evolutionStage,
   };
+}
+
+// ── Team builder ─────────────────────────────────────────────────────────────
+
+/** Showdown's name for a Pokémon, e.g. "Raichu-Alola", "Charizard-Mega-X". */
+export function showdownName(entry: DexEntry): string {
+  if (entry.isDefault) return entry.speciesName;
+  const speciesSlug = entry.speciesName
+    .normalize('NFD')
+    .replace(/[̀-ͯ’'.:]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const suffix = entry.slug.startsWith(`${speciesSlug}-`) ? entry.slug.slice(speciesSlug.length + 1) : entry.formName ?? entry.slug;
+  const titled = suffix
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('-');
+  return `${entry.speciesName}-${titled}`;
+}
+
+const sameBattleData = (a: DexEntry, b: DexEntry) =>
+  a.types.join() === b.types.join() &&
+  a.total === b.total &&
+  STAT_KEYS.every((k) => a.stats[k] === b.stats[k]) &&
+  a.abilities.map((x) => x.slug).join() === b.abilities.map((x) => x.slug).join();
+
+/**
+ * Everything worth putting on a team: every species plus forms that play
+ * differently (Megas, regional forms, Rotom appliances…). Skips Gigantamax,
+ * totem and event forms, and cosmetic forms identical to the default.
+ */
+export function teamCandidates(): DexEntry[] {
+  const defaults = new Map(ALL_SPECIES.map((p) => [p.speciesId, p]));
+  return ALL_POKEMON.filter((p) => {
+    if (p.isDefault) return true;
+    if (p.isGigantamax || /totem|eternamax|cosplay|rock-star|belle|pop-star|phd|libre/.test(p.slug)) return false;
+    const base = defaults.get(p.speciesId);
+    return !base || !sameBattleData(p, base);
+  });
+}
+
+export function toTeamMon(entry: DexEntry): TeamMon {
+  return {
+    id: entry.id,
+    speciesId: entry.speciesId,
+    name: entry.name,
+    showdownName: showdownName(entry),
+    types: entry.types,
+    stats: STAT_KEYS.map((k) => entry.stats[k]),
+    total: entry.total,
+    abilities: entry.abilities.map((a) => (a.hidden ? `${a.name} (H)` : a.name)),
+    fullyEvolved: entry.isFullyEvolved,
+    restricted: entry.isLegendary || entry.isMythical,
+    mega: entry.isMega,
+  };
+}
+
+/**
+ * Attacking type → defending type → multiplier, read off each type's
+ * single-typed Pokémon so it always matches the dataset.
+ */
+export function typeChart(): TypeChart {
+  const chart: TypeChart = {};
+  for (const atk of BATTLE_TYPES) chart[atk] = {};
+  for (const def of BATTLE_TYPES) {
+    const mono = ALL_SPECIES.find((p) => p.types.length === 1 && p.types[0] === def);
+    if (!mono) throw new Error(`No single-typed ${def} Pokémon to read the type chart from`);
+    for (const atk of BATTLE_TYPES) chart[atk][def] = damageTaken(mono, atk);
+  }
+  return chart;
 }
