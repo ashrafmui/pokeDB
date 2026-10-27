@@ -21,6 +21,7 @@ import { fetchPokemon, fetchSpecies } from '@/lib/pokeApi';
 import { officialArtworkUrl, pickAnimatedSprite } from '@/lib/sprites';
 import { capitalize, formatDexNumber, toTitleCase } from '@/lib/formatters';
 import { MAX_POKEMON_ID } from '@/lib/site';
+import { compareStats, getDexEntry } from '@/lib/dex';
 
 interface PokeAPIType {
   slot: number;
@@ -153,6 +154,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
+  const dexEntry = getDexEntry(pokemon.id);
   const prevId = currentId > 1 ? currentId - 1 : MAX_POKEMON_ID;
   const nextId = currentId < MAX_POKEMON_ID ? currentId + 1 : 1;
 
@@ -222,6 +224,7 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
               <BaseStats
                 stats={pokemon.stats}
                 pokemonName={pokemon.name}
+                comparisons={dexEntry ? compareStats(dexEntry) : undefined}
               />
               <TypeEffectiveness types={pokemon.types} />
             </div>
