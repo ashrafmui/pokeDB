@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { GENERATION_COUNT, MAX_POKEMON_ID, SITE_URL } from "@/lib/site";
+import { ALL_ABILITIES, ALL_MOVES } from "@/lib/moves";
 import { TYPE_CHART } from "@/lib/typeUtils";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -21,6 +22,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/team-builder", 0.8),
     page("/explore", 0.8),
     page("/compare", 0.7),
+    page("/moves", 0.8),
+    ...ALL_MOVES.map((m) => page(`/moves/${m.slug}`, 0.5)),
+    page("/abilities", 0.8),
+    ...ALL_ABILITIES.map((a) => page(`/abilities/${a.slug}`, 0.5)),
     page("/disclaimer", 0.1),
   ];
 }

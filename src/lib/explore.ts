@@ -1,6 +1,8 @@
 // Pure filtering, sorting and URL encoding for the /explore page. Client-safe;
 // the server builds ExploreRows from src/lib/dex.ts.
 
+import { CURRENT_GEN } from '@/lib/moveData';
+
 export const STAT_NAMES = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'] as const;
 
 export interface ExploreRow {
@@ -93,6 +95,10 @@ export interface Filters {
   categories: Category[];
   forms: boolean;
   ability: string;
+  /** Slug of a move the Pokémon must learn; resolved with a learner map (see applyFilters). */
+  learns: string;
+  /** Count moves a Pokémon can no longer learn in current games too. */
+  learnsAny: boolean;
   eggGroup: string;
   color: string;
   weakTo: string;
@@ -113,6 +119,8 @@ export const DEFAULT_FILTERS: Filters = {
   categories: [],
   forms: false,
   ability: '',
+  learns: '',
+  learnsAny: false,
   eggGroup: '',
   color: '',
   weakTo: '',
@@ -147,7 +155,12 @@ function matchesCategory(row: ExploreRow, c: Category): boolean {
   }
 }
 
-export function applyFilters(rows: readonly ExploreRow[], f: Filters): ExploreRow[] {
+/**
+ * `learners` maps Pokémon id → newest generation it can learn `f.learns` in.
+ * While it's still loading (null) a move filter matches nothing rather than
+ * flashing the unfiltered list.
+ */
+export function applyFilters(rows: readonly ExploreRow[], f: Filters, learners: ReadonlyMap<number, number> | null = null): ExploreRow[] {
   const q = f.q.trim().toLowerCase();
   const ability = f.ability.trim().toLowerCase();
   const out = rows.filter((r) => {
@@ -161,6 +174,10 @@ export function applyFilters(rows: readonly ExploreRow[], f: Filters): ExploreRo
     // Categories narrow together: "Legendary" + "Fully evolved" means both.
     if (!f.categories.every((c) => matchesCategory(r, c))) return false;
     if (ability && !r.abilities.some((a) => a.toLowerCase().includes(ability))) return false;
+    if (f.learns) {
+      const lastGen = learners?.get(r.id);
+      if (lastGen === undefined || (!f.learnsAny && lastGen < CURRENT_GEN)) return false;
+    }
     if (f.eggGroup && !r.eggGroups.includes(f.eggGroup)) return false;
     if (f.color && r.color !== f.color) return false;
     if (f.weakTo && !r.weakTo.includes(f.weakTo)) return false;
@@ -215,7 +232,7 @@ export function activeFilterCount(f: Filters): number {
   if (f.gens.length) n++;
   n += f.categories.length;
   if (f.forms) n++;
-  for (const k of ['ability', 'eggGroup', 'color', 'weakTo', 'resists', 'immuneTo'] as const) if (f[k]) n++;
+  for (const k of ['ability', 'learns', 'eggGroup', 'color', 'weakTo', 'resists', 'immuneTo'] as const) if (f[k]) n++;
   n += f.min.filter((v) => v != null).length + f.max.filter((v) => v != null).length;
   return n;
 }
@@ -235,6 +252,8 @@ export function toQuery(f: Filters): string {
   if (f.categories.length) add('cat', f.categories.join(','));
   if (f.forms) add('forms', '1');
   if (f.ability) add('ability', f.ability);
+  if (f.learns) add('learns', f.learns);
+  if (f.learns && f.learnsAny) add('learnsAll', '1');
   if (f.eggGroup) add('egg', f.eggGroup);
   if (f.color) add('color', f.color);
   if (f.weakTo) add('weak', f.weakTo);
@@ -272,6 +291,8 @@ export function fromQuery(search: string): Filters {
     categories: list(p.get('cat')).filter((c): c is Category => c in CATEGORY_LABELS),
     forms: p.get('forms') === '1',
     ability: p.get('ability') ?? '',
+    learns: p.get('learns') ?? '',
+    learnsAny: p.get('learnsAll') === '1',
     eggGroup: p.get('egg') ?? '',
     color: p.get('color') ?? '',
     weakTo: p.get('weak') ?? '',
@@ -308,6 +329,7 @@ export const PRESETS: Preset[] = [
     filters: { categories: ['fully-evolved'], min: [null, 110, null, null, null, null, null], max: [null, null, null, null, null, 50, null], sort: 'atk', desc: true },
   },
   { label: 'Bulkiest walls', filters: { categories: ['fully-evolved'], sort: 'def', desc: true } },
+  { label: 'Fastest Earthquake users', filters: { learns: 'earthquake', categories: ['fully-evolved'], sort: 'spe', desc: true } },
   { label: 'Ground immunities', filters: { immuneTo: 'ground', categories: ['fully-evolved'], sort: 'total', desc: true } },
   { label: 'Hardest to catch', filters: { sort: 'capture' } },
   { label: 'Heaviest', filters: { sort: 'weight', desc: true } },

@@ -18,6 +18,12 @@ export default function Navbar() {
           <Link href="/explore" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">
             Explore
           </Link>
+          <Link href="/moves" className="hidden whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground sm:inline">
+            Moves
+          </Link>
+          <Link href="/abilities" className="hidden whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground sm:inline">
+            Abilities
+          </Link>
         </div>
         <div className="flex min-w-0 flex-1 justify-end">
           <SearchBar />
