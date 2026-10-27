@@ -21,3 +21,13 @@ export const NameThemAll = dynamic(() => import('@/components/games/NameThemAll'
   ssr: false,
   loading: () => <Skeleton className="mx-auto h-64 w-full max-w-xl rounded-2xl" />,
 });
+
+export const HigherOrLower = dynamic(() => import('@/components/games/HigherOrLower'), {
+  ssr: false,
+  loading: () => <Skeleton className="mx-auto h-96 w-full max-w-xl rounded-2xl" />,
+});
+
+export const MovesetMystery = dynamic(() => import('@/components/games/MovesetMystery'), {
+  ssr: false,
+  loading: () => <Skeleton className="mx-auto h-96 w-full max-w-xl rounded-2xl" />,
+});

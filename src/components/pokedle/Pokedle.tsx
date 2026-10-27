@@ -4,6 +4,7 @@
 // can read today's date and localStorage while initialising state.
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowDown, ArrowUp, Check, Copy, RefreshCw, Shuffle } from 'lucide-react';
@@ -28,6 +29,11 @@ import {
 
 const GAME_KEY = 'pokedle:daily';
 const STATS_KEY = 'pokedle:stats';
+export const RESULTS_KEY = 'pokedle:results';
+const archiveKey = (puzzle: number) => `pokedle:archive:${puzzle}`;
+
+/** How each finished puzzle went, for the archive page. */
+export type Results = Record<number, { solved: boolean; guesses: number }>;
 
 interface SavedGame {
   puzzle: number;
@@ -85,6 +91,17 @@ function recordResult(puzzle: number, solved: boolean, guesses: number): Stats {
   }
   write(STATS_KEY, next);
   return next;
+}
+
+function recordOutcome(puzzle: number, solved: boolean, guesses: number) {
+  const results = read<Results>(RESULTS_KEY, {});
+  write(RESULTS_KEY, { ...results, [puzzle]: { solved, guesses } });
+}
+
+/** The past puzzle asked for in the URL (?puzzle=N), if it's a valid earlier one. */
+function requestedArchivePuzzle(param: string | null, today: number): number | null {
+  const n = Number(param);
+  return Number.isInteger(n) && n >= 1 && n < today ? n : null;
 }
 
 // ── UI pieces ────────────────────────────────────────────────────────────────
@@ -166,16 +183,21 @@ function StatsPanel({ stats }: { stats: Stats }) {
 
 // ── Game ─────────────────────────────────────────────────────────────────────
 
-export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; siteUrl: string }) {
+function PokedleGame({ pool, siteUrl, puzzleParam }: { pool: readonly DexLite[]; siteUrl: string; puzzleParam: string | null }) {
   const byId = useMemo(() => new Map(pool.map((p) => [p.id, p])), [pool]);
-  const puzzle = useMemo(() => puzzleNumber(), []);
+  const today = useMemo(() => puzzleNumber(), []);
+  const archivePuzzle = useMemo(() => requestedArchivePuzzle(puzzleParam, today), [puzzleParam, today]);
+  // The puzzle in the "daily" tab: today's, or a past one opened from the archive.
+  const puzzle = archivePuzzle ?? today;
   const dailyTarget = useMemo(() => dailyAnswer(pool, puzzle), [pool, puzzle]);
 
   const [mode, setMode] = useState<'daily' | 'practice'>('daily');
   const [practiceTarget, setPracticeTarget] = useState<DexLite>(() => pool[Math.floor(Math.random() * pool.length)]);
   const [dailyGuesses, setDailyGuesses] = useState<number[]>(() => {
-    const saved = read<SavedGame>(GAME_KEY, { puzzle: 0, guessIds: [] });
-    return saved.puzzle === puzzle ? saved.guessIds.filter((id) => byId.has(id)) : [];
+    const saved = archivePuzzle
+      ? { puzzle, guessIds: read<number[]>(archiveKey(puzzle), []) }
+      : read<SavedGame>(GAME_KEY, { puzzle: 0, guessIds: [] });
+    return saved.puzzle === puzzle && Array.isArray(saved.guessIds) ? saved.guessIds.filter((id) => byId.has(id)) : [];
   });
   const [practiceGuesses, setPracticeGuesses] = useState<number[]>([]);
   const [stats, setStats] = useState<Stats>(() => read(STATS_KEY, EMPTY_STATS));
@@ -196,13 +218,18 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
       return;
     }
     setDailyGuesses(next);
-    write(GAME_KEY, { puzzle, guessIds: next } satisfies SavedGame);
+    if (archivePuzzle) write(archiveKey(puzzle), next);
+    else write(GAME_KEY, { puzzle, guessIds: next } satisfies SavedGame);
     const nowSolved = p.id === target.id;
-    if (nowSolved || next.length >= MAX_GUESSES) setStats(recordResult(puzzle, nowSolved, next.length));
+    if (nowSolved || next.length >= MAX_GUESSES) {
+      recordOutcome(puzzle, nowSolved, next.length);
+      // Past puzzles don't count toward the daily streak.
+      if (!archivePuzzle) setStats(recordResult(puzzle, nowSolved, next.length));
+    }
   }
 
   async function copyShare() {
-    const text = shareText(puzzle, results, solved, `${siteUrl}/play/pokedle`);
+    const text = shareText(puzzle, results, solved, `${siteUrl}/play/pokedle${archivePuzzle ? `?puzzle=${puzzle}` : ''}`);
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -228,7 +255,7 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
               onClick={() => setMode(m)}
               className={cn('rounded-full px-4 py-1.5 font-medium transition', mode === m ? 'bg-white shadow' : 'text-muted-foreground')}
             >
-              {m === 'daily' ? `Daily #${puzzle}` : 'Practice'}
+              {m === 'daily' ? `${archivePuzzle ? 'Archive' : 'Daily'} #${puzzle}` : 'Practice'}
             </button>
           ))}
         </div>
@@ -244,7 +271,7 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
         onPick={handleGuess}
         label="Guess a Pokémon"
         placeholder="Type a Pokémon name…"
-        disabledPlaceholder="Game over, come back tomorrow!"
+        disabledPlaceholder={archivePuzzle ? 'Game over, try another puzzle!' : 'Game over, come back tomorrow!'}
       />
 
       <div>
@@ -298,7 +325,7 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
               </div>
             </div>
           </div>
-          {mode === 'daily' && (
+          {mode === 'daily' && !archivePuzzle && (
             <div className="mt-5 border-t pt-4">
               <StatsPanel stats={stats} />
             </div>
@@ -306,10 +333,22 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
         </div>
       )}
 
+      <p className="text-sm">
+        {archivePuzzle ? (
+          <Link href="/play/pokedle" className="text-blue-600 hover:underline">
+            ← Back to today&apos;s puzzle
+          </Link>
+        ) : (
+          <Link href="/play/pokedle/archive" className="text-blue-600 hover:underline">
+            Missed a day? Play past puzzles →
+          </Link>
+        )}
+      </p>
+
       <details className="rounded-xl bg-gray-50 p-4 text-sm text-muted-foreground">
         <summary className="cursor-pointer font-medium text-foreground">How to play</summary>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>Guess the Pokémon in {MAX_GUESSES} tries. A new one appears every day at midnight UTC.</li>
+          <li>Guess the Pokémon in {MAX_GUESSES} tries. A new one appears every day at midnight UTC, and you can replay earlier days from the archive.</li>
           <li><span className="font-medium text-emerald-600">Green</span> means that clue matches exactly.</li>
           <li><span className="font-medium text-amber-600">Yellow</span> on a type means it&apos;s the answer&apos;s other type; on a number it means you&apos;re close (within 1 generation, or 20% of the height or weight).</li>
           <li>Arrows tell you whether the answer&apos;s generation, stage, height or weight is higher or lower.</li>
@@ -318,4 +357,10 @@ export default function Pokedle({ pool, siteUrl }: { pool: readonly DexLite[]; s
       </details>
     </div>
   );
+}
+
+export default function Pokedle(props: { pool: readonly DexLite[]; siteUrl: string }) {
+  const puzzleParam = useSearchParams().get('puzzle');
+  // Remount when switching between today's puzzle and an archive one.
+  return <PokedleGame key={puzzleParam ?? 'today'} {...props} puzzleParam={puzzleParam} />;
 }
