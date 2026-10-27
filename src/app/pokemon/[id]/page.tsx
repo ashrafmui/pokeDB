@@ -6,7 +6,7 @@ import PokemonHeader from '@/components/PokemonPageHeader';
 import PokemonNavRails from '@/components/PokemonNavRails';
 import PokemonTimelineSection from '@/components/PokemonTimelineSection';
 import TradingCards from '@/components/TradingCards';
-import { Globe, Info, Layers, Swords } from 'lucide-react';
+import { Globe, Info, Layers, Sparkles, Swords } from 'lucide-react';
 import PokemonLocations from '@/components/PokemonLocations';
 import PokemonMoves from '@/components/PokemonMoves';
 import PokemonAbilities from '@/components/PokemonAbilities';
@@ -194,6 +194,18 @@ export default async function PokemonPage({ params }: { params: Promise<{ id: st
             </div>
             <PokemonNamesCard pokemonId={pokemon.id} />
           </PokemonTimelineSection>
+
+          {pokemon.hasForms && (
+            <PokemonTimelineSection
+              id="forms"
+              label="Forms"
+              Icon={Sparkles}
+              iconBg="bg-violet-50"
+              iconColor="text-violet-600"
+            >
+              <PokemonForms pokemonId={pokemon.id} />
+            </PokemonTimelineSection>
+          )}
 
           <PokemonTimelineSection
             id="combat"
