@@ -6,7 +6,7 @@
 
 import movesData from '@/data/moves.json';
 import abilitiesData from '@/data/abilities.json';
-import { getDexEntry, teamCandidates, type DexEntry } from '@/lib/dex';
+import { ALL_SPECIES, getDexEntry, teamCandidates, type DexEntry } from '@/lib/dex';
 import { CURRENT_GEN, decodeLearn, type AbilityRow, type Learn, type LearnerRow, type MoveListRow, type MoveRow } from '@/lib/moveData';
 
 interface MovesFile {
@@ -107,4 +107,61 @@ export function abilityHolders(slug: string): AbilityHolder[] {
 /** Number of species (default forms) that can have the ability. */
 export function abilitySpeciesCount(slug: string): number {
   return new Set(abilityHolders(slug).map((h) => h.entry.speciesId)).size;
+}
+
+// ── Guess-the-Pokémon clues ──────────────────────────────────────────────────
+
+export interface MoveClue {
+  id: number;
+  /** Species name. */
+  name: string;
+  types: string[];
+  generation: number;
+  abilities: string[];
+  /** Six moves it learns in current games, from common to distinctive. */
+  moves: { name: string; type: string }[];
+}
+
+let clueCache: MoveClue[] | null = null;
+
+/**
+ * One clue set per species, for the moveset guessing game. Moves come ordered
+ * from widely shared to rare, so later clues give the answer away more.
+ */
+export function moveClues(): MoveClue[] {
+  if (clueCache) return clueCache;
+  const bySpecies = new Map<number, { move: MoveRow; learners: number }[]>();
+  for (const move of ALL_MOVES) {
+    const { current } = learnerCounts(move.id);
+    if (current === 0) continue;
+    for (const l of learnsOf(move.id)) {
+      if (!l.entry.isDefault || l.lastGen < CURRENT_GEN) continue;
+      const list = bySpecies.get(l.entry.id) ?? [];
+      list.push({ move, learners: current });
+      bySpecies.set(l.entry.id, list);
+    }
+  }
+  const POSITIONS = [0.2, 0.35, 0.5, 0.65, 0.8, 0.95]; // spread across the common → rare range
+  clueCache = ALL_SPECIES.flatMap((entry): MoveClue[] => {
+    const list = (bySpecies.get(entry.id) ?? []).sort((a, b) => b.learners - a.learners || a.move.id - b.move.id);
+    if (list.length < POSITIONS.length) return [];
+    const picked = new Set<number>();
+    const moves = POSITIONS.flatMap((p) => {
+      let i = Math.min(list.length - 1, Math.floor(p * list.length));
+      while (picked.has(i)) i = i > 0 ? i - 1 : list.length - 1; // list has at least POSITIONS.length entries, so a free slot exists
+      picked.add(i);
+      return [{ name: list[i].move.name, type: list[i].move.type }];
+    });
+    return [
+      {
+        id: entry.id,
+        name: entry.name,
+        types: entry.types,
+        generation: entry.generation,
+        abilities: entry.abilities.map((a) => a.name),
+        moves,
+      },
+    ];
+  });
+  return clueCache;
 }
