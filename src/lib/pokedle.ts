@@ -142,21 +142,3 @@ export function shareText(puzzle: number, results: GuessResult[], solved: boolea
   const rows = results.map((r) => HINT_COLUMNS.map((c) => EMOJI[r.cells[c.key].status]).join(''));
   return [`poKeDB Pokédle #${puzzle} ${score}`, ...rows, url].join('\n');
 }
-
-/**
- * Suggestions for the guess box: names starting with the query first, then
- * names containing it, skipping Pokémon already guessed.
- */
-export function suggest(pool: readonly DexLite[], query: string, exclude: ReadonlySet<number>, limit = 8): DexLite[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const starts: DexLite[] = [];
-  const contains: DexLite[] = [];
-  for (const p of pool) {
-    if (exclude.has(p.id)) continue;
-    const name = p.name.toLowerCase();
-    if (name.startsWith(q)) starts.push(p);
-    else if (name.includes(q)) contains.push(p);
-  }
-  return [...starts, ...contains].slice(0, limit);
-}
