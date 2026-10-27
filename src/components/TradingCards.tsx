@@ -31,17 +31,18 @@ export default function TradingCards({ pokemonName }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<TCGCard | null>(null);
 
+  // Bumped by "Try again" to re-run the fetch.
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setError(null);
+      setCards(null);
       try {
-        const query = encodeURIComponent(`name:"${pokemonName}"`);
-        const res = await fetch(
-          `https://api.pokemontcg.io/v2/cards?q=${query}&orderBy=-set.releaseDate&pageSize=60`
-        );
-        if (!res.ok) throw new Error(`TCG API responded ${res.status}`);
-        const json: TCGResponse = await res.json();
+        const res = await fetch(`/api/tcg?name=${encodeURIComponent(pokemonName)}`);
+        const json: TCGResponse & { error?: string } = await res.json().catch(() => ({ data: [] }));
+        if (!res.ok) throw new Error(json.error ?? `TCG API responded ${res.status}`);
         if (!cancelled) setCards(json.data ?? []);
       } catch (err) {
         if (!cancelled) {
@@ -54,7 +55,7 @@ export default function TradingCards({ pokemonName }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [pokemonName]);
+  }, [pokemonName, attempt]);
 
   if (cards === null) {
     return (
@@ -69,7 +70,14 @@ export default function TradingCards({ pokemonName }: Props) {
   if (error) {
     return (
       <p className="text-sm text-muted-foreground italic">
-        Could not load trading cards ({error}).
+        Could not load trading cards ({error}).{' '}
+        <button
+          type="button"
+          onClick={() => setAttempt((n) => n + 1)}
+          className="not-italic font-medium text-foreground underline underline-offset-2"
+        >
+          Try again
+        </button>
       </p>
     );
   }
