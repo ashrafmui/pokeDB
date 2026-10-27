@@ -15,6 +15,9 @@ export default function Navbar() {
           <Link href="/team-builder" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">
             Team
           </Link>
+          <Link href="/explore" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">
+            Explore
+          </Link>
         </div>
         <div className="flex min-w-0 flex-1 justify-end">
           <SearchBar />
