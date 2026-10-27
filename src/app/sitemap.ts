@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page("/team-builder", 0.8),
     page("/explore", 0.8),
     page("/compare", 0.7),
+    page("/damage-calc", 0.8),
     page("/moves", 0.8),
     ...ALL_MOVES.map((m) => page(`/moves/${m.slug}`, 0.5)),
     page("/abilities", 0.8),

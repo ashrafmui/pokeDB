@@ -18,6 +18,9 @@ export default function Navbar() {
           <Link href="/explore" className="whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground">
             Explore
           </Link>
+          <Link href="/damage-calc" className="hidden whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground sm:inline">
+            Calc
+          </Link>
           <Link href="/moves" className="hidden whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground sm:inline">
             Moves
           </Link>

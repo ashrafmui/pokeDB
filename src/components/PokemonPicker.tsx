@@ -39,6 +39,7 @@ export default function PokemonPicker<T extends Pickable>({
   placeholder,
   disabledPlaceholder,
   label,
+  sprites = true,
 }: {
   pool: readonly T[];
   exclude: ReadonlySet<number>;
@@ -48,6 +49,8 @@ export default function PokemonPicker<T extends Pickable>({
   disabledPlaceholder?: string;
   /** Accessible name for the input. */
   label: string;
+  /** Show a Pokémon sprite beside each suggestion; off when picking something else, like moves. */
+  sprites?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [highlight, setHighlight] = useState(0);
@@ -101,7 +104,7 @@ export default function PokemonPicker<T extends Pickable>({
                 onClick={() => pick(p)}
                 className={cn('flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm', i === highlight && 'bg-blue-50')}
               >
-                <Image src={spriteUrl(p.id)} alt="" width={32} height={32} unoptimized style={{ imageRendering: 'pixelated' }} />
+                {sprites && <Image src={spriteUrl(p.id)} alt="" width={32} height={32} unoptimized style={{ imageRendering: 'pixelated' }} />}
                 {p.name}
               </button>
             </li>
