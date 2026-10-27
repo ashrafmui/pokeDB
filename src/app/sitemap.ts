@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { ...page("/play/pokedle", 0.9), changeFrequency: "daily" },
     page("/team-builder", 0.8),
     page("/explore", 0.8),
+    page("/compare", 0.7),
     page("/disclaimer", 0.1),
   ];
 }

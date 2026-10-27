@@ -53,6 +53,25 @@ export const SORT_LABELS: Record<SortKey, string> = {
   moves: 'Moves learnable',
 };
 
+/** In-game egg group names (PokéAPI uses internal ones like "ground" for Field). */
+export const EGG_GROUP_LABELS: Record<string, string> = {
+  monster: 'Monster',
+  water1: 'Water 1',
+  water2: 'Water 2',
+  water3: 'Water 3',
+  bug: 'Bug',
+  flying: 'Flying',
+  ground: 'Field',
+  fairy: 'Fairy',
+  plant: 'Grass',
+  humanshape: 'Human-Like',
+  mineral: 'Mineral',
+  indeterminate: 'Amorphous',
+  dragon: 'Dragon',
+  ditto: 'Ditto',
+  'no-eggs': 'Undiscovered',
+};
+
 export type Category = 'legendary' | 'mythical' | 'baby' | 'mega' | 'regional' | 'fully-evolved' | 'not-fully-evolved' | 'regular';
 export const CATEGORY_LABELS: Record<Category, string> = {
   regular: 'Not legendary or mythical',

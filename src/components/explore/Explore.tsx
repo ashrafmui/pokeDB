@@ -15,6 +15,7 @@ import { getTypeBadgeColors } from '@/lib/typeColors';
 import {
   CATEGORY_LABELS,
   DEFAULT_FILTERS,
+  EGG_GROUP_LABELS,
   PRESETS,
   SORT_LABELS,
   STAT_NAMES,
@@ -34,23 +35,6 @@ const PAGE = 60;
 const GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-const EGG_GROUP_LABELS: Record<string, string> = {
-  monster: 'Monster',
-  water1: 'Water 1',
-  water2: 'Water 2',
-  water3: 'Water 3',
-  bug: 'Bug',
-  flying: 'Flying',
-  ground: 'Field',
-  fairy: 'Fairy',
-  plant: 'Grass',
-  humanshape: 'Human-Like',
-  mineral: 'Mineral',
-  indeterminate: 'Amorphous',
-  dragon: 'Dragon',
-  ditto: 'Ditto',
-  'no-eggs': 'Undiscovered',
-};
 
 /** Extra column shown when sorting by something that isn't already visible. */
 const EXTRA_COLUMN: Partial<Record<SortKey, (r: ExploreRow) => string>> = {
