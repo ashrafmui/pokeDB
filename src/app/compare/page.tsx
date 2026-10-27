@@ -7,14 +7,19 @@ import { parseIds } from '@/lib/compare';
 type Props = { searchParams: Promise<{ ids?: string }> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const names = parseIds((await searchParams).ids)
+  const ids = parseIds((await searchParams).ids);
+  const names = ids
     .map((id) => getDexEntry(id)?.name)
     .filter(Boolean);
   if (names.length >= 2) {
     const title = `${names.join(' vs ')} – Stat & Matchup Comparison`;
+    const description = `Compare ${names.join(', ')} side by side: base stats with percentiles, head-to-head type matchups, weaknesses, abilities and more.`;
+    const image = `/og/compare?ids=${ids.join(',')}`;
     return {
       title,
-      description: `Compare ${names.join(', ')} side by side: base stats with percentiles, head-to-head type matchups, weaknesses, abilities and more.`,
+      description,
+      openGraph: { title, description, images: [{ url: image, width: 1200, height: 630 }] },
+      twitter: { card: 'summary_large_image', title, description, images: [image] },
       // One canonical page; individual comparisons are shareable but not indexed separately.
       alternates: { canonical: '/compare' },
     };
