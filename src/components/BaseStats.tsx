@@ -17,9 +17,62 @@ interface Stat {
   value: number;
 }
 
+export interface StatComparison {
+  key: string;
+  value: number;
+  percentile: number;
+  rank: number;
+  outOf: number;
+}
+
 interface BaseStatsProps {
   stats: Stat[];
   pokemonName: string;
+  /** How each stat compares with all Pokémon, from src/lib/dex.ts. */
+  comparisons?: StatComparison[];
+}
+
+// Keys used by src/lib/dex.ts → labels shown in the comparison list.
+const COMPARISON_LABELS: Record<string, string> = {
+  hp: 'HP',
+  attack: 'Attack',
+  defense: 'Defense',
+  specialAttack: 'Sp. Atk',
+  specialDefense: 'Sp. Def',
+  speed: 'Speed',
+  total: 'Total',
+};
+
+function percentileColor(percentile: number): string {
+  if (percentile >= 90) return 'bg-emerald-500';
+  if (percentile >= 65) return 'bg-lime-500';
+  if (percentile >= 35) return 'bg-amber-400';
+  if (percentile >= 10) return 'bg-orange-500';
+  return 'bg-red-500';
+}
+
+function StatComparisons({ comparisons }: { comparisons: StatComparison[] }) {
+  return (
+    <div className="space-y-1.5 px-2 pb-2">
+      <p className="text-[11px] text-muted-foreground">
+        Compared with all {comparisons[0]?.outOf.toLocaleString()} Pokémon
+      </p>
+      {comparisons.map((c) => (
+        <div
+          key={c.key}
+          className={`grid grid-cols-[52px_32px_1fr_40px] items-center gap-2 text-xs ${c.key === 'total' ? 'pt-1.5 border-t border-border/50 font-medium' : ''}`}
+          title={`Higher than ${c.percentile}% of Pokémon · rank #${c.rank} of ${c.outOf.toLocaleString()}`}
+        >
+          <span className="text-muted-foreground">{COMPARISON_LABELS[c.key] ?? c.key}</span>
+          <span className="tabular-nums text-right">{c.value}</span>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className={`h-full rounded-full ${percentileColor(c.percentile)}`} style={{ width: `${Math.max(c.percentile, 2)}%` }} />
+          </div>
+          <span className="tabular-nums text-right text-muted-foreground">#{c.rank}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 interface RadarDataPoint {
@@ -85,7 +138,12 @@ function StatsRadarChart({ data, pokemonName }: { data: RadarDataPoint[]; pokemo
   );
 }
 
-export default function BaseStats({ stats, pokemonName }: BaseStatsProps) {
+export default function BaseStats({ stats, pokemonName, comparisons }: BaseStatsProps) {
   const radarData = formatRadarData(sortStats(stats));
-  return <StatsRadarChart data={radarData} pokemonName={pokemonName} />;
+  return (
+    <div>
+      <StatsRadarChart data={radarData} pokemonName={pokemonName} />
+      {comparisons && comparisons.length > 0 && <StatComparisons comparisons={comparisons} />}
+    </div>
+  );
 }
