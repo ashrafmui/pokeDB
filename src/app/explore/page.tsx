@@ -27,8 +27,10 @@ export default function ExplorePage() {
             Filter and sort every Pokémon by type, stats, abilities, matchups and more. Every view is a shareable link.
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Also browse all <Link href="/moves" className="underline">moves</Link> and{' '}
-            <Link href="/abilities" className="underline">abilities</Link>.
+            Also: <Link href="/moves" className="underline">moves</Link>,{' '}
+            <Link href="/abilities" className="underline">abilities</Link>,{' '}
+            <Link href="/damage-calc" className="underline">damage calculator</Link> and{' '}
+            <Link href="/tracker" className="underline">Pokédex tracker</Link>.
           </p>
         </div>
         <Explore rows={rows} types={[...BATTLE_TYPES]} moves={moves} />
